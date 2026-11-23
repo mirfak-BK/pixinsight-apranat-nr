@@ -19,6 +19,9 @@ function dialogTestMain()
    let failures = 0;
    try
    {
+      // read the saved language like the script does at start (read only)
+      dppLoadLanguageSetting();
+      lines.push( "PASS saved language setting can be read (" + dppLanguage() + ")" );
       DPP_LANGUAGES.forEach( language =>
       {
          dppSetLanguage( language );

@@ -2,6 +2,8 @@
 // ApranatNR-GUI.js - dialog
 // ----------------------------------------------------------------------------
 
+#include <pjsr/DataType.jsh>
+
 const ANR_LIST_HEIGHT_MAIN = 160;
 const ANR_LIST_HEIGHT_SMALL = 90;
 const ANR_LIST_MIN_WIDTH = 560;
@@ -12,7 +14,7 @@ const ANR_LANGUAGE_SETTING = "ApranatNR/language";
 /** Restores the dialog language chosen last time (English when none). */
 function anrLoadLanguageSetting()
 {
-   const value = Settings.read( ANR_LANGUAGE_SETTING, DataType_String );
+   const value = Settings.read( ANR_LANGUAGE_SETTING, DataType_UCString );
    if ( Settings.lastReadOK )
       anrSetLanguage( value );
 }
@@ -31,7 +33,7 @@ function anrLanguageSelector( dialog, onChange )
       if ( ANR_LANGUAGES[ index ] === anrLanguage() )
          return;
       anrSetLanguage( ANR_LANGUAGES[ index ] );
-      Settings.write( ANR_LANGUAGE_SETTING, DataType_String, anrLanguage() );
+      Settings.write( ANR_LANGUAGE_SETTING, DataType_UCString, anrLanguage() );
       onChange();
    };
    const sizer = new HorizontalSizer;

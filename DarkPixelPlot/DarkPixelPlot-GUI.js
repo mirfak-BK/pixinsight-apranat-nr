@@ -2,6 +2,8 @@
 // DarkPixelPlot-GUI.js - dialog.
 // ----------------------------------------------------------------------------
 
+#include <pjsr/DataType.jsh>
+
 const DPP_IMAGE_EXTENSIONS = [ "*.fit", "*.fits", "*.fts", "*.xisf", "*.cr2", "*.cr3", "*.nef", "*.arw", "*.dng", "*.orf", "*.raf", "*.rw2" ];
 const DPP_LANGUAGE_SETTING = "DarkPixelPlot/language";
 const DPP_LABEL_KEYS = [ "mapLabel", "outLabel", "titleLabel", "ratioLabel" ];
@@ -14,7 +16,7 @@ function dppImageFilters()
 /** Restores the language chosen last time (English when none). */
 function dppLoadLanguageSetting()
 {
-   const value = Settings.read( DPP_LANGUAGE_SETTING, DataType_String );
+   const value = Settings.read( DPP_LANGUAGE_SETTING, DataType_UCString );
    if ( Settings.lastReadOK )
       dppSetLanguage( value );
 }
@@ -33,7 +35,7 @@ function dppLanguageSelector( dialog, onChange )
       if ( DPP_LANGUAGES[ index ] === dppLanguage() )
          return;
       dppSetLanguage( DPP_LANGUAGES[ index ] );
-      Settings.write( DPP_LANGUAGE_SETTING, DataType_String, dppLanguage() );
+      Settings.write( DPP_LANGUAGE_SETTING, DataType_UCString, dppLanguage() );
       onChange();
    };
    const sizer = new HorizontalSizer;

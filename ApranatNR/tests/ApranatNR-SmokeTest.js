@@ -195,6 +195,8 @@ function smokeCfaDetection( dir )
 
 function smokeDialog()
 {
+   anrLoadLanguageSetting();
+   smokeCheck( ANR_LANGUAGES.indexOf( anrLanguage() ) >= 0, "saved language setting can be read" );
    ANR_LANGUAGES.forEach( language =>
    {
       anrSetLanguage( language );
