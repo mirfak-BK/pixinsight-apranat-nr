@@ -33,7 +33,7 @@
 
 ```bash
 node --test tests/*.test.js          # 単体テスト（Node）
-tests/wbpp-e2e/run.sh                # 実際の WBPP を使う端から端までのテスト（別の PixInsight を自動実行）
+tests/wbpp-e2e/run.sh                # WBPP 組み込みの通しテスト（実際の WBPP を別の PixInsight で自動実行）
 ```
 
 ソースを直したら `node tools/build-wbpp-builder.js` で WBPP 用のビルダーを作り直してください。

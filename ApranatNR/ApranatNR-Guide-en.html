@@ -424,7 +424,7 @@ footer { color: var(--muted); font-size: .85rem; border-top: 1px solid var(--bor
   <ul>
     <li>Master darks are not corrected. A drunk pixel's value in a master dark is its average dark level, which is right to subtract; the pixel is replaced in the lights.</li>
     <li>The defect map is built from individual darks. A master dark cannot be used, as it has no information on the fluctuation over time.</li>
-    <li>The WBPP integration uses WBPP's official Pipeline builder, but how the step is inserted depends on WBPP's internal structure. After a major WBPP update, check it with the end-to-end test below.</li>
+    <li>The WBPP integration uses WBPP's official Pipeline builder, but how the step is inserted depends on WBPP's internal structure. After a major WBPP update, run the WBPP integration test in section 12 (<code>tests/wbpp-e2e/run.sh</code>): it runs the real WBPP from start to finish on synthetic data and checks that the ApranatNR step is inserted correctly.</li>
     <li><b>WBPP remembers the previous file lists.</b> Darks or flats of another target left in the lists can calibrate the lights with darks of another exposure or gain, and the defect map is then built from those darks. After a run, check <code>IC.masterDarkPath</code> and the ApranatNR line "Dark 1/24: …" in the log.</li>
     <li>WBPP's automatic reference frame selection can change from run to run. To compare masters, use the same reference frame, or align positions and intensity scales first.</li>
     <li>The protection of faint stars (the stack test) works for undithered data, where the same star stays on the same pixels. In the unguided, undithered test data, 3 of the 218 faint stars whose core sits on a defect pixel were still dimmed by more than 10%.</li>
