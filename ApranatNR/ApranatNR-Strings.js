@@ -96,12 +96,12 @@ const ANR_STRINGS = {
       overwrite: "既存ファイルを上書きする",
       overwriteTip: "<p>オフの場合は _1, _2 ... を付けた別名で保存します。</p>",
       close: "閉じる",
-      lightsGroup: "ライトフレーム（ダーク/フラット補正済み・位置合わせ前・デベイヤー前）",
+      lightsGroup: "ライトフレーム（ダーク/フラット補正済み・位置合わせ前・ディベイヤー前）",
       cfaLabel: "センサー配列:",
       cfaAuto: "自動判定（BAYERPAT / CFAプロパティ）",
       cfaMono: "モノクロ（または RGB）",
       cfaBayer: "Bayer CFA（同色画素で近傍計算）",
-      cfaTip: "<p>カラーカメラの未デベイヤー画像では、同じ色の画素（2画素おき）だけで近傍メディアンを計算します。</p>",
+      cfaTip: "<p>カラーカメラの未ディベイヤー画像では、同じ色の画素（2画素おき）だけで近傍メディアンを計算します。</p>",
       darksGroup: "ダークフレーム（個別ファイル・ライトと同設定）",
       rtnGroup: "酩酊ピクセル補正（ソフトウェア・ピクセルマッピング）",
       defectMapLabel: "既存の欠陥マップ:",
@@ -138,7 +138,7 @@ const ANR_STRINGS = {
       runStageA: "① 実行",
       doneStageA: "<p>%d 枚の補正済みフレームを書き出しました。</p>" +
                   "<p>次の手順: 補正済みフレームを WBPP（キャリブレーションなし）または StarAlignment で" +
-                  "デベイヤー・位置合わせし、registered フレームを ② タブに追加してください。</p>",
+                  "ディベイヤー・位置合わせし、registered フレームを ② タブに追加してください。</p>",
       registeredGroup: "位置合わせ済みフレーム（registered）",
       excludeZero: "値が 0 以下の画素を「データなし」として除外（位置合わせで生じた枠）",
       excludeZeroTip: "<p>ImageIntegration の Clip low range と同じ扱いです。ノータッチガイドで画角が流れた場合の縁の暗化を防ぎます。</p>" +
