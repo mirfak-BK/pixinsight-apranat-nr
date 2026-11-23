@@ -69,7 +69,9 @@ function dppParseArguments( args )
 
 function dppMain()
 {
-   const args = ( typeof jsArguments !== "undefined" ) ? jsArguments : [];
+   // Runtime.jsArguments replaces the deprecated global jsArguments (kept for older versions)
+   const hasRuntime = typeof Runtime !== "undefined" && Runtime.jsArguments !== undefined;
+   const args = hasRuntime ? Runtime.jsArguments : ( ( typeof jsArguments !== "undefined" ) ? jsArguments : [] );
    if ( args.length > 0 )
    {
       // unattended run: the console of an automation instance is not visible,
