@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ApranatNR 説明書</title>
+<style>
+:root {
+  --bg: #fbfaf7;
+  --surface: #ffffff;
+  --fg: #1f2328;
+  --muted: #5d6670;
+  --border: #e2ded6;
+  --accent: #2f5d8a;
+  --accent-soft: #e8eff7;
+  --highlight: #fff4d6;
+  --highlight-border: #e3c46b;
+  --note-bg: #eef5ee;
+  --note-border: #6aa06f;
+  --warn-bg: #fdf0ec;
+  --warn-border: #d4805f;
+  --code-bg: #f3f1ec;
+  --shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171a;
+    --surface: #1d2024;
+    --fg: #e6e6e3;
+    --muted: #a3a9b0;
+    --border: #33373d;
+    --accent: #8fb6de;
+    --accent-soft: #23303d;
+    --highlight: #3a3220;
+    --highlight-border: #a88d3f;
+    --note-bg: #1e2a20;
+    --note-border: #5f9465;
+    --warn-bg: #2f221d;
+    --warn-border: #b8704f;
+    --code-bg: #26292e;
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15171a;
+  --surface: #1d2024;
+  --fg: #e6e6e3;
+  --muted: #a3a9b0;
+  --border: #33373d;
+  --accent: #8fb6de;
+  --accent-soft: #23303d;
+  --highlight: #3a3220;
+  --highlight-border: #a88d3f;
+  --note-bg: #1e2a20;
+  --note-border: #5f9465;
+  --warn-bg: #2f221d;
+  --warn-border: #b8704f;
+  --code-bg: #26292e;
+  --shadow: none;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+  -webkit-text-size-adjust: 100%;
+}
+a { color: var(--accent); }
+code, pre, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .88em; }
+code { background: var(--code-bg); padding: .1em .35em; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; line-height: 1.55; }
+pre code { background: none; padding: 0; overflow-wrap: normal; }
+.layout { max-width: 1120px; margin: 0 auto; padding: 0 16px; display: grid; grid-template-columns: 1fr; gap: 32px; }
+header.top { max-width: 1120px; margin: 0 auto; padding: 40px 16px 8px; }
+header.top h1 { font-size: 2rem; line-height: 1.3; margin: 0 0 6px; letter-spacing: .01em; }
+header.top .lead { color: var(--muted); margin: 0; }
+.badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.badge { font-size: .8rem; border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 2px 10px; color: var(--muted); }
+nav.toc { font-size: .92rem; }
+nav.toc .toc-inner { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; box-shadow: var(--shadow); }
+nav.toc h2 { font-size: .85rem; color: var(--muted); margin: 0 0 6px; letter-spacing: .05em; }
+nav.toc ol { margin: 0; padding-left: 1.3em; }
+nav.toc li { margin: 2px 0; }
+nav.toc a { text-decoration: none; }
+nav.toc a:hover { text-decoration: underline; }
+main { min-width: 0; padding-bottom: 64px; }
+section { margin: 0 0 44px; scroll-margin-top: 16px; }
+h2 { font-size: 1.45rem; line-height: 1.4; margin: 0 0 14px; padding-bottom: 6px; border-bottom: 2px solid var(--border); }
+h3 { font-size: 1.12rem; margin: 26px 0 8px; }
+p { margin: 0 0 12px; }
+ul, ol { margin: 0 0 12px; padding-left: 1.4em; }
+li { margin: 3px 0; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; box-shadow: var(--shadow); margin: 0 0 14px; }
+.methods { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 14px; }
+.methods .card { margin: 0; }
+.methods h3 { margin-top: 0; }
+.tag { display: inline-block; font-size: .75rem; padding: 0 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); margin-left: 6px; vertical-align: 2px; }
+.callout { border-left: 4px solid var(--note-border); background: var(--note-bg); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 0 0 14px; }
+.callout.warn { border-left-color: var(--warn-border); background: var(--warn-bg); }
+.callout p:last-child, .callout ul:last-child { margin-bottom: 0; }
+.table-wrap { overflow-x: auto; margin: 0 0 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { background: var(--code-bg); font-weight: 600; white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+td.num { white-space: nowrap; font-variant-numeric: tabular-nums; }
+td:first-child { white-space: nowrap; }
+td:first-child code { overflow-wrap: normal; }
+td:last-child { min-width: 14em; }
+.flow { list-style: none; padding: 0; margin: 0 0 14px; display: flex; flex-direction: column; gap: 0; }
+.flow li { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; margin: 0 0 22px; }
+.flow li:not(:last-child)::after { content: "↓"; position: absolute; left: 50%; bottom: -21px; transform: translateX(-50%); color: var(--muted); font-size: .95rem; line-height: 1; }
+.flow li.hl { background: var(--highlight); border-color: var(--highlight-border); }
+.flow li.opt { border-style: dashed; }
+.flow .who { font-size: .78rem; color: var(--muted); margin-left: 6px; }
+.steps { counter-reset: s; list-style: none; padding: 0; }
+.steps > li { counter-increment: s; position: relative; padding-left: 2.3em; margin: 0 0 10px; }
+.steps > li::before { content: counter(s); position: absolute; left: 0; top: .15em; width: 1.6em; height: 1.6em; border-radius: 50%; background: var(--accent); color: var(--surface); font-size: .85em; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+dl.faq dt { font-weight: 700; margin-top: 14px; }
+dl.faq dd { margin: 4px 0 0; }
+footer { color: var(--muted); font-size: .85rem; border-top: 1px solid var(--border); padding: 16px 0 40px; }
+@media (min-width: 900px) {
+  .layout { grid-template-columns: 240px minmax(0, 1fr); }
+  nav.toc .toc-inner { position: sticky; top: 16px; }
+  nav.toc { align-self: start; position: sticky; top: 16px; }
+  .methods { grid-template-columns: repeat(3, 1fr); }
+  header.top h1 { font-size: 2.3rem; }
+}
+@media print {
+  nav.toc { display: none; }
+  .layout { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>ApranatNR 説明書</h1>
+  <p class="lead">あぷらなーと氏が考案した、WBPPに無いノイズ対策の前処理を PixInsight で行うスクリプトです。</p>
+  <div class="badges">
+    <span class="badge">バージョン 1.6.0</span>
+    <span class="badge">PixInsight 1.9.6 以降</span>
+    <span class="badge">WBPP 組み込みは WBPP 3.2 以降</span>
+    <a class="badge" href="ApranatNR-Guide-en.html" hreflang="en">English</a>
+  </div>
+</header>
+
+<div class="layout">
+<nav class="toc" aria-label="目次">
+  <div class="toc-inner">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#overview">概要</a></li>
+      <li><a href="#methods">3つの手法</a></li>
+      <li><a href="#files">ファイル構成</a></li>
+      <li><a href="#standalone">使い方 A：単体スクリプト</a></li>
+      <li><a href="#wbpp">使い方 B：WBPP に組み込む</a></li>
+      <li><a href="#settings">WBPP 用の設定ファイル</a></li>
+      <li><a href="#outputs">出力ファイル</a></li>
+      <li><a href="#defectmap">欠陥マップの使い回し</a></li>
+      <li><a href="#results">検証結果</a></li>
+      <li><a href="#limits">注意点と既知の制限</a></li>
+      <li><a href="#faq">よくある質問</a></li>
+      <li><a href="#dev">開発・テスト</a></li>
+    </ol>
+  </div>
+</nav>
+
+<main>
+
+<section id="overview">
+  <h2>1. 概要</h2>
+  <p>ApranatNR は、次の3つの手法を PixInsight で使えるようにしたスクリプトです。どれも WBPP（WeightedBatchPreprocessing）の標準機能にはありません。</p>
+  <ul>
+    <li><b>酩酊ピクセル補正</b>（ソフトウェア・ピクセルマッピング）：<a href="https://apranat.exblog.jp/32142709/">元記事</a></li>
+    <li><b>クールファイル補正法</b>：<a href="https://apranat.exblog.jp/28135658/">元記事</a></li>
+    <li><b>コスミカット法</b>：<a href="https://apranat.exblog.jp/31257871/">元記事</a></li>
+  </ul>
+  <p>使い方は2通りあります。</p>
+  <ul>
+    <li><b>A. 単体スクリプト</b>（<code>ApranatNR.js</code>）：WBPP でキャリブレーションしたフレームを補正し、そのあと WBPP などで位置合わせと積分をします。手順ごとに結果を確認したいときに向いています。</li>
+    <li><b>B. WBPP に組み込む</b>（<code>ApranatNR-WBPP-Builder.js</code>）：WBPP の「Pipeline builder」機能を使い、WBPP の処理の途中に ApranatNR の工程を差し込みます。WBPP を一度実行するだけで最後まで処理できます。WBPP 本体のファイルは変更しません。</li>
+  </ul>
+
+  <h3>処理の流れ（WBPP に組み込んだ場合）</h3>
+  <ol class="flow">
+    <li>マスターダーク・マスターフラットの作成 <span class="who">WBPP（変更なし）</span></li>
+    <li>ライトのキャリブレーション <span class="who">WBPP</span></li>
+    <li class="hl"><b>① ApranatNR</b>：酩酊ピクセル補正 → クールファイル補正 <span class="who">ApranatNR</span></li>
+    <li>コスメティック補正・デベイヤー <span class="who">WBPP</span></li>
+    <li>位置合わせ・積分 → マスターライト <span class="who">WBPP</span></li>
+    <li class="opt">② コスミカットのマスター（任意・比較用） <span class="who">ApranatNR</span></li>
+  </ol>
+</section>
+
+<section id="methods">
+  <h2>2. 3つの手法</h2>
+  <div class="methods">
+    <div class="card">
+      <h3>酩酊ピクセル補正<span class="tag">①</span></h3>
+      <p>フレームごとに出力値が2つの値の間を行き来する画素（RTN：Random Telegraph Noise）を、周りの画素の値で置き換えます。</p>
+    </div>
+    <div class="card">
+      <h3>クールファイル補正法<span class="tag">①</span></h3>
+      <p>周りより暗く写る画素（クールピクセル）を見つけ、その暗さを全フレームで持ち上げます。</p>
+    </div>
+    <div class="card">
+      <h3>コスミカット法<span class="tag">②</span></h3>
+      <p>位置合わせ後、画素ごとに一番明るい1枚を除いて平均します。宇宙線や人工衛星の跡を消します。</p>
+    </div>
+  </div>
+
+  <h3>2.1 酩酊ピクセル補正（ソフトウェア・ピクセルマッピング）</h3>
+  <p>酩酊ピクセルは、読み出し回路の欠陥が原因で、値がフレームごとに2段階に揺れる画素です。位置はセンサーごとに決まっています。マスターダークには各画素の平均値しか入っていないので、ダーク減算では揺れそのものは消えません。</p>
+  <p><b>見つけ方</b>：個別のダークフレーム（8枚以上、できれば20枚程度）を使います。FITS・XISF のほか、CR2 などカメラの RAW ファイルも、デベイヤー前のセンサーの値のまま読み込みます。</p>
+  <ul>
+    <li>画素ごとに、何枚にもわたる値の揺れ（標準偏差）を計算します。宇宙線など1枚だけの突発値で誤検出しないよう、各画素の最大値と最小値を1枚ずつ除いて計算します。</li>
+    <li>その揺れを「その画素のダーク値で期待される揺れ」と比べ、<b>4倍</b>（設定で 1.5〜20 倍）を超える画素を酩酊ピクセルとします。期待される揺れは、ダークの物理で決まります：<br>
+      期待される揺れ² ＝ 読み出しノイズ² ＋ 係数 ×（ダーク値 − 通常のダーク値）<br>
+      第2項は暗電流のショットノイズです。読み出しノイズは全画素の揺れの中央値、係数は通常より十分明るい「暖かい画素」から求めます。暗電流が多いだけのホットピクセルは、値が高いぶん揺れも大きくなりますが、この式どおりなので判定には入りません。<br>
+      ダーク値には、各画素の平均ではなく<b>下側の値</b>（平均 − 0.674 × 揺れ。下から4分の1あたりの値）を使います。ときどき上向きに跳ねる酩酊ピクセルは、跳ねた分だけ平均が上がるため、平均で比べると暖かい画素と取り違えてしまいます。下側の値なら通常のレベルのままです（Canon EOS 6D などデジタル一眼レフのダークで多く見られるタイプ）。</li>
+    <li>結果は欠陥マップ <code>rtn_defect_map.xisf</code> に保存されます。全画素の3%を超えた場合は、ダークの異常（飽和など）とみなしてエラーで止めます（高ゲインの ASI533MC Pro で約1.2%）。</li>
+  </ul>
+  <p><b>直し方</b>：キャリブレーション後・デベイヤー前の各ライトで、欠陥画素の値を同じ色の周りの画素（カラーカメラでは2画素離れた8画素）の中央値に置き換えます。</p>
+  <p><b>星の保護</b>（既定でオン）：置き換えで値が<b>5σ</b>（そのフレームの、同じ色の画素どうしのばらつき）を超えて変わる画素は補正しません。</p>
+  <ul>
+    <li>星の中心は周りの画素より必ず明るいので、置き換えると暗くなります。ガイドなし・ディザーなしで同じ星が同じ欠陥画素に乗り続けると、全フレームで同じだけ暗くなり、マスターに残ります。保護はこれを防ぎます。</li>
+    <li>1枚の中ではノイズに埋もれる淡い星は、上の判定では守れません。そこで、補正前のライトを位置合わせせずに重ねた画像（各画素の一番明るい1枚を除いた平均。宇宙線を星と間違えないため）も使い、次のどちらかに当たる欠陥画素は補正しません。
+      <ul>
+        <li>その画素が、同じ色の周りの画素より<b>5σ</b>を超えて明るい</li>
+        <li>隣の8画素が、それぞれの同じ色の周りの画素より、まとめて<b>3σ</b>を超えて明るい（星の広がり。酩酊ピクセルの跡は1画素だけなので当たらない）</li>
+      </ul>
+      ガイドなし・ディザーなしで撮影したデータ（10 秒 × 27 枚、画角はほとんど動かない）では、直さずに残した欠陥画素は 1.43%（画素そのもの 991、星の広がり 1,142）。芯が欠陥画素に乗った淡い星 218 個の明るさの変化は、中央値 −3.5%（1.5.0）から +0.1% になり、10% 以上暗くなる星は 31 個から 3 個に減りました。背景ノイズの改善と欠陥画素の補正は変わりません。</li>
+    <li>欠陥画素に乗った大きな一時的な外れ値（宇宙線など）も残し、積分時のピクセル棄却に任せます。</li>
+    <li>値が NaN や無限大の欠陥画素は、常に置き換えます。</li>
+  </ul>
+
+  <h3>2.2 クールファイル補正法</h3>
+  <ul>
+    <li>位置合わせをしないでライトを加算平均します。画角が少しずつずれていれば星や星雲はぼやけ、センサー由来の暗い点だけが同じ位置に残ります。</li>
+    <li>同じ色の周りの画素の中央値より <b>5σ</b>（設定で 0〜10。0 は元記事の「しきい値ゼロ」）以上暗い画素をクールピクセルとし、周りとの差（持ち上げる量）を「クールファイル」に記録します。</li>
+    <li>クールファイルを、全フレームの該当画素に足します。それ以外の画素は変わりません。</li>
+    <li><b>構造の保護</b>（既定でオン）：周りの画素が平坦な場所の「孤立した暗い点」だけを補正します。星の像や星雲の縁では、ショットノイズや明るさの変化で暗く見える画素を誤検出するため除外します。</li>
+    <li>2枚以上で動きますが、10枚以上を推奨します。</li>
+  </ul>
+
+  <h3>2.3 コスミカット法</h3>
+  <ul>
+    <li>位置合わせ後のフレームで、画素ごとに「（合計 − 最大値）÷（枚数 − 1）」を計算します。一番明るい1枚を必ず除く平均です。</li>
+    <li>ImageIntegration の Min/Max 棄却（上側1枚・下側0枚）と同じ計算です。</li>
+    <li>位置合わせで生じた画像の縁（値が0以下）は、データなしとして除外できます。</li>
+    <li>3枚以上が必要です。</li>
+  </ul>
+</section>
+
+<section id="files">
+  <h2>3. ファイル構成</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>ファイル</th><th>役割</th></tr></thead>
+    <tbody>
+      <tr><td><code>ApranatNR.js</code></td><td>単体スクリプトの本体（PixInsight で実行するファイル）</td></tr>
+      <tr><td><code>ApranatNR-Core.js</code></td><td>数値処理（検出・置き換え・合成）</td></tr>
+      <tr><td><code>ApranatNR-IO.js</code> / <code>ApranatNR-Engine.js</code></td><td>画像の読み書きと処理の手順</td></tr>
+      <tr><td><code>ApranatNR-GUI.js</code> / <code>ApranatNR-Strings.js</code> / <code>ApranatNR-Version.js</code></td><td>画面、画面の文言（英語・日本語）、バージョン番号</td></tr>
+      <tr><td><code>ApranatNR-WBPP.js</code></td><td>WBPP との連携部分</td></tr>
+      <tr><td><code>ApranatNR-WBPP-Builder.js</code></td><td>WBPP の Pipeline builder に指定するファイル（上のファイルから自動生成。直接編集しない）</td></tr>
+      <tr><td><code>ApranatNR-WBPP-Settings.json</code></td><td>WBPP 組み込み時の設定（ビルダーと同じフォルダに置く）</td></tr>
+      <tr><td><code>tools/</code>・<code>tests/</code></td><td>ビルダーの生成ツールとテスト</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="standalone">
+  <h2>4. 使い方 A：単体スクリプト</h2>
+  <p>PixInsight のメニュー「Script &gt; Execute Script File...」で <code>ApranatNR.js</code> を実行します。「Script &gt; Feature Scripts...」でフォルダを登録すると、「Script &gt; Preprocessing &gt; ApranatNR」から起動できます。</p>
+
+  <h3>① 位置合わせ前（酩酊ピクセル / クールファイル）タブ</h3>
+  <ol class="steps">
+    <li><b>ライトフレーム</b>に、WBPP の <code>calibrated</code> フォルダにある <code>_c.xisf</code> を追加します（ダーク・フラット補正済み、位置合わせ前、デベイヤー前）。</li>
+    <li><b>センサー配列</b>は「自動判定」のままで構いません。カラーカメラの未デベイヤー画像では、同じ色の画素だけで計算します。</li>
+    <li><b>酩酊ピクセル補正</b>を使う場合は、見出しのチェックを入れ、どちらかを指定します。
+      <ul>
+        <li>ダークフレーム欄：ライトと同じ設定の個別ダーク（8枚以上）</li>
+        <li>既存の欠陥マップ：以前に作った <code>rtn_defect_map.xisf</code>（ダークの解析を省略）</li>
+      </ul>
+      「標準偏差しきい値」（既定 4）と「星・星雲などの構造を保護する（推奨）」はそのままで構いません。</li>
+    <li><b>クールファイル補正法</b>の「検出しきい値 (σ)」（既定 5）と構造の保護も、そのままで構いません。</li>
+    <li><b>出力フォルダ</b>を空欄にすると、最初のライトと同じフォルダに <code>ApranatNR</code> サブフォルダを作ります。<b>出力ファイル接尾辞</b>の既定は <code>_anr</code> です。</li>
+    <li>「① 実行」を押します。補正済みフレームを WBPP（キャリブレーション用のマスターは入れずに、ライトだけ登録）で積分するか、StarAlignment で位置合わせします。</li>
+  </ol>
+
+  <h3>② 位置合わせ後（コスミカット）タブ</h3>
+  <ol class="steps">
+    <li><b>位置合わせ済みフレーム（registered）</b>を追加します。</li>
+    <li>「値が 0 以下の画素を『データなし』として除外」は、通常オンのままにします。</li>
+    <li>「② コスミカット実行」を押すと、<code>master_cosmicut.xisf</code> を書き出します。「棄却された最大値マップも保存」をオンにすると、除いた最大値の画像も保存します。</li>
+  </ol>
+  <p>画面下の「既存ファイルを上書きする」をオフにすると、同名のファイルがあるときは <code>_1</code>、<code>_2</code> … を付けた別名で保存します。元のライトが上書きされることはありません。</p>
+  <p><b>画面の言語</b>：最初は英語で表示されます。画面下の「Language」で「日本語」を選ぶと、入力した内容はそのままで画面が日本語になり、次回からも日本語で開きます。処理ログ（コンソール）は英語のままです。</p>
+</section>
+
+<section id="wbpp">
+  <h2>5. 使い方 B：WBPP に組み込む</h2>
+  <ol class="steps">
+    <li>WBPP の「Pipeline」タブにある「Pipeline builder」を有効にし、<code>ApranatNR-WBPP-Builder.js</code> を選びます。パイプライン表示で、各ライトグループの Calibration の直後に「ApranatNR」の工程が入ったことを確認できます。</li>
+    <li>ライト・ダーク・フラットを、いつもどおり登録します。
+      <ul>
+        <li>ライトに対応する<b>個別ダークが8枚以上</b>あれば、酩酊ピクセルの欠陥マップを実行のたびに自動で作ります。</li>
+        <li>マスターダークしか登録しない場合は、設定ファイルの <code>rtnDefectMapPath</code> に既存の欠陥マップを指定してください。指定しないと、酩酊ピクセル補正は警告を出して飛ばされます。</li>
+      </ul></li>
+    <li>実行します。WBPP は ApranatNR が補正したフレームでデベイヤー以降を処理します。</li>
+  </ol>
+  <div class="callout">
+    <p><b>エラーのとき</b>：設定ファイルに誤りがあると、WBPP のパイプライン表示に内容が出ます。そのまま実行しても、ライトの処理に入る前に止まります。補正なしのまま黙って処理が進むことはありません。</p>
+  </div>
+  <ul>
+    <li>補正済みフレームが1組増えるので、キャリブレーション済みフレーム1組分のディスク容量が必要です（WBPP の空き容量チェックにも含めています）。</li>
+    <li>処理時間の目安は、3008×3008 画素のフレームで 20〜27 枚あたり 20〜26 秒です。結果は再利用せず、実行のたびにやり直します。</li>
+    <li>マスターダークとマスターフラットの作成には手を加えません。</li>
+  </ul>
+</section>
+
+<section id="settings">
+  <h2>6. WBPP 用の設定ファイル</h2>
+  <p><code>ApranatNR-WBPP-Settings.json</code> をテキストエディタで編集します。<code>//</code> で始まる行はコメントです。保存したら WBPP を開き直すか、画面を操作してパイプライン表示を更新してください。</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>項目</th><th>既定値</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td><code>rtnEnabled</code></td><td class="num">true</td><td>酩酊ピクセル補正を使う</td></tr>
+      <tr><td><code>rtnDefectMapPath</code></td><td class="num">""</td><td>既存の欠陥マップのフルパス。空なら <code>rtnUseWbppDarks</code> に従う。Windows ではフォルダの区切りを <code>/</code> にする</td></tr>
+      <tr><td><code>rtnUseWbppDarks</code></td><td class="num">true</td><td>WBPP に登録した個別ダーク（8枚以上）から欠陥マップを作る</td></tr>
+      <tr><td><code>rtnRatio</code></td><td class="num">4.0</td><td>酩酊ピクセルと判定する揺れの倍率（1.5〜20）。ダークから作るときだけ使う</td></tr>
+      <tr><td><code>rtnProtectStructures</code></td><td class="num">true</td><td>星の保護（置き換えで 5σ を超えて変わる画素と、補正前の重ねた画像で星が乗っている画素は補正しない）</td></tr>
+      <tr><td><code>coolEnabled</code></td><td class="num">true</td><td>クールファイル補正を使う</td></tr>
+      <tr><td><code>coolSigma</code></td><td class="num">5.0</td><td>クールピクセルの検出しきい値 σ（0〜10）</td></tr>
+      <tr><td><code>coolProtectStructures</code></td><td class="num">true</td><td>星・星雲などの構造上の画素は補正しない</td></tr>
+      <tr><td><code>cfaMode</code></td><td class="num">"auto"</td><td><code>"auto"</code>（WBPP の CFA 設定に従う）・<code>"mono"</code>・<code>"bayer"</code></td></tr>
+      <tr><td><code>cosmicutEnabled</code></td><td class="num">false</td><td>積分後、比較用のコスミカットのマスターを <code>master</code> フォルダに書き出す（位置合わせが有効なときだけ）</td></tr>
+      <tr><td><code>cosmicutExcludeZero</code></td><td class="num">true</td><td>値が 0 以下の画素（画像の縁）をデータなしとして扱う</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>書かなかった項目は既定値になります。知らない項目名・型の違い・範囲外の値はエラーになります（打ち間違いを見逃さないため）。</p>
+</section>
+
+<section id="outputs">
+  <h2>7. 出力ファイル</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>ファイル</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td><code>*_anr.xisf</code></td><td>補正済みフレーム（WBPP 組み込み時は <code>*_c_anr.xisf</code>、デベイヤー後は <code>*_c_anr_d.xisf</code>）。HISTORY に処理内容を記録</td></tr>
+      <tr><td><code>rtn_defect_map.xisf</code></td><td>酩酊ピクセルの欠陥マップ（1 = 欠陥）。次回から使い回せる</td></tr>
+      <tr><td><code>coolfile.xisf</code></td><td>クールファイル（各画素を持ち上げる量）</td></tr>
+      <tr><td><code>unregistered_stack.xisf</code></td><td>位置合わせなしの加算平均（酩酊ピクセル補正後。クールファイルの元）</td></tr>
+      <tr><td><code>master_cosmicut.xisf</code></td><td>コスミカットのマスター（単体版の②）</td></tr>
+      <tr><td><code>masterLight_…_cosmicut.xisf</code></td><td>WBPP 組み込み時のコスミカットのマスター（<code>cosmicutEnabled</code> が true のとき）</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>WBPP 組み込み時は、出力フォルダの <code>apranatnr/&lt;グループ名&gt;/</code> に補正済みフレーム・欠陥マップ・クールファイル・加算平均画像がまとまります。</p>
+</section>
+
+<section id="defectmap">
+  <h2>8. 欠陥マップの使い回し</h2>
+  <p>一度作った <code>rtn_defect_map.xisf</code> は、次の条件を満たせば別の撮影にも使えます。</p>
+  <ul>
+    <li><b>同じカメラ個体</b>であること（位置はセンサー1枚ごとに違う）</li>
+    <li><b>画像サイズ・ビニング・向き</b>が同じであること（サイズはスクリプトが確認しますが、上下反転は確認しません。同じ撮影ソフトで撮ったダークとライトなら問題ありません）</li>
+    <li><b>ゲインと温度</b>はできれば同じにすること（欠陥の位置は変わりませんが、揺れの大きさや頻度が変わり、検出される画素が少し入れ替わります。Gain 460 のマップを Gain 400 のライトに使って効果が出た例があります）</li>
+    <li>酩酊ピクセルは出たり消えたりするので、24枚1組のダークで見つかるのは全体の6割ほどです。別の日・別の温度のダークで作ったマップとは、6〜7割が同じ画素になります（80 ミリ秒・Gain 460 のダークと 10 秒・Gain 400 のダークでは 74% が一致）。</li>
+    <li>欠陥画素は年々増えるので、ダークを撮り直すときにマップも作り直すのがおすすめです。</li>
+  </ul>
+  <p>キャリブレーションに使ったマスターダークが新しくても古くても関係ありません。補正はキャリブレーション後のライトに対して行うためです。</p>
+</section>
+
+<section id="results">
+  <h2>9. 検証結果</h2>
+  <p>ZWO ASI533MC Pro のデータで、WBPP だけの場合と比べました（積分設定と基準フレームは同じ）。</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>撮影</th><th>条件の詳細</th><th>結果</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>ガイドなし・ディザーなし</td>
+        <td>Gain 400、10 秒 × 27 枚。画角は全体で約 1×4 画素しか動かず、星も欠陥画素もほぼ毎回同じ位置に来る</td>
+        <td>1.4：マスターに残っていた酩酊ピクセルの上乗せが消えた。背景ノイズ約 0.7% 減。1.2.0 で起きた星の中心の減光（最大約 40%）は、1.3.0 の星の保護で 0.2% 以下に。WBPP 組み込み版と単体版で結果が一致。<br>1.5.2：欠陥マップ 148,675 画素。背景ノイズ約 1.7% 減。欠陥画素の跡（5σ超）1.75% → 1.50%（欠陥のない場所 1.63%）。明るい星・淡い星とも明るさの変化は中央値 ±0.2% 以内</td>
+      </tr>
+      <tr>
+        <td>1 枚ごとに画角がずれる（ディザリングと同様）</td>
+        <td>Gain 460、300 秒 × 20 枚。画角が 1 枚ごとに約 7 画素ずれ、欠陥画素は毎回違う空の位置に来る</td>
+        <td>1.4：背景ノイズ 0.4〜0.7% 減。斑点はどちらも 0。基準フレームの酩酊ピクセル位置の上乗せ 0.73% → 0.26%（欠陥のない場所 0.44%）。星への影響なし（±0.4% 以内）。<br>1.5.0：欠陥マップ 136,686 画素。背景ノイズ 1.2〜1.8% 減。新しくマップに入った画素の上乗せ 0.58% → 0.17%。明るい星 200 個の変化は中央値 −0.02%。<br>1.5.2：重ねた画像での保護は 1.43%。背景ノイズ約 1.2% 減（WBPP が別の基準フレームを選んだため参考値）、星の明るさの変化なし（淡い星も中央値 +0.2%、10% 以上暗くなる星 0）</td>
+      </tr>
+      <tr>
+        <td>ダーク</td>
+        <td>24 枚を半分に分け、一方で欠陥マップ、もう一方で試験</td>
+        <td>酩酊ピクセルは 1 枚ごとに普通の画素の約 20 倍跳ねる。補正（星の保護なし）で 5σ 超の画素が約 15%、10σ 超が約 18% 減。マップの画素は試験側でも約 4.9 倍揺れていた</td>
+      </tr>
+      <tr>
+        <td>コスミカット</td>
+        <td>上の 2 つの撮影</td>
+        <td>WBPP の ESD 棄却とほぼ同等（明るさを合わせるとノイズ比 0.98〜1.00）</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout">
+    <p><b>まとめ</b>：このカメラでは、効果は小さいものの一貫してプラスで、画質が悪くなることはありませんでした。効果がはっきり出るのは、枚数が少ない場合、画角がほとんど流れない（ディザーなし）場合、クールピクセルの多いカメラなどです。</p>
+  </div>
+</section>
+
+<section id="limits">
+  <h2>10. 注意点と既知の制限</h2>
+  <div class="callout warn">
+    <p><b>星の保護は、ノイズの小さいフレームでは効きすぎます。</b>保護は「置き換えで値がどれだけ変わるか」だけで判定しています。空のノイズがないダークや、ナローバンド・非常に暗い空での短い露出のライトでは、酩酊ピクセルの跳ねそのものが 5σ を超えるため、星ではない背景の画素まで補正しなくなります。ダークでの試験では、マップの約 27% が補正されませんでした（これまでの RGB のライトでは 0.6〜1.5%）。そうしたデータでは、星の保護をオフにする方法があります。</p>
+  </div>
+  <ul>
+    <li>マスターダークには補正を入れません。マスターダークの酩酊ピクセルの値は「その画素の平均的なダーク値」で、引くのが正しい処理です。その画素はライト側で置き換えます。</li>
+    <li>欠陥マップは個別ダークから作ります。マスターダークからは作れません（時間方向の揺れの情報がないため）。</li>
+    <li>WBPP 組み込みは WBPP 公式の Pipeline builder を使っていますが、工程を差し込む位置の決め方は WBPP の内部構造に頼っています。WBPP が大きく更新されたときは、下の端から端までのテストで動作を確かめてください。</li>
+    <li><b>WBPP は前回のファイル一覧を覚えています。</b>別の対象のダークやフラットが残っていると、露出やゲインの違うダークでライトを補正し、欠陥マップもそのダークから作ってしまいます。処理後にログで <code>IC.masterDarkPath</code> と、ApranatNR の「Dark 1/24: …」の行を確かめてください。</li>
+    <li>WBPP の基準フレームの自動選択は、実行ごとに変わることがあります。マスター同士を比べるときは、基準フレームをそろえるか、位置と明るさの尺度を合わせてから比べてください。</li>
+    <li>淡い星の保護（重ねた画像での判定）は、同じ星が同じ画素に乗り続ける、ディザーなしのデータで効きます。ガイドなし・ディザーなしのテストデータでは、芯が欠陥画素に乗った淡い星 218 個のうち 3 個が、まだ 10% 以上暗くなりました。</li>
+    <li>撮影中に温度が変わったダークでは、明るいホットピクセルの暗電流も変わり、揺れが式（読み出しノイズ＋ショットノイズ）より大きくなります。数十画素のホットピクセルが酩酊ピクセルと判定されることがあります。</li>
+  </ul>
+</section>
+
+<section id="faq">
+  <h2>11. よくある質問</h2>
+  <dl class="faq">
+    <dt>ダークフレームを読み込むのは何のためですか？</dt>
+    <dd>酩酊ピクセルの位置を調べるためだけです。ライトから引き算はしません。光が入らないダークなら、時間による変化はセンサーのノイズだけなので、異常に揺れる画素をはっきり見分けられます。</dd>
+    <dt>欠陥マップが一度できたら、次からダークは要りませんか？</dt>
+    <dd>要りません。単体版では「既存の欠陥マップ」に、WBPP 組み込みでは <code>rtnDefectMapPath</code> に指定してください。</dd>
+    <dt>ライトはデベイヤー前のファイルを使いますか？</dt>
+    <dd>はい。キャリブレーション後・デベイヤー前の1チャンネルの画像を使います。カラーカメラでは同じ色の画素どうしで計算します。</dd>
+    <dt>ダークの「輝度中央値と輝度揺らぎ」のグラフ（あぷらなーと氏の分析）を作れますか？</dt>
+    <dd>別のツール <code>DarkPixelPlot</code>（<code>DarkPixelPlot/DarkPixelPlot.js</code>）で作れます。個別のダーク（8枚以上、RAW ファイルも可）を選ぶと、画素ごとの中央値と標準偏差のグラフを PNG で書き出します。ApranatNR の欠陥マップを重ねて表示することもできます。印を付ける判定は ApranatNR と同じ（読み出しノイズ＋暗電流のショットノイズの式、各画素の下側の値）で、典型的な揺れの曲線もこの式で描きます。</dd>
+    <dt>WBPP のシグマクリッピング（ESD 棄却）などをくぐり抜けたノイズに効きますか？</dt>
+    <dd>効くのは、棄却が苦手なノイズです。棄却は、空の同じ位置で少数だけ飛び出した値を捨てる仕組みなので、①ディザーなしで毎回同じ位置に来る欠陥、②半分ほどのフレームで跳ねる酩酊ピクセル、③枚数が少ないときの欠陥画素は通り抜けます。酩酊ピクセル補正は、ダークから欠陥の場所を先に知っているので、これらを1枚ずつ直せます。ガイドなし・ディザーなしのデータで背景ノイズ約 1.7% 減、1 枚ごとに画角がずれるデータ（ディザリングと同様）で約 1.2〜1.4% 減でした。一方、宇宙線など1枚だけの外れ値は ESD 棄却がよく取るので、コスミカットを足しても上乗せはほとんどありません。</dd>
+    <dt>ダークで星の保護が働くのはなぜですか？ ダークに星はありませんよね。</dt>
+    <dd>ダークに星はありません。保護が跳ねの大きさだけで判定しているため、ノイズの小さいダークでは酩酊ピクセルの跳ねそのものが上限を超えてしまいます（前の「既知の制限」参照）。</dd>
+  </dl>
+</section>
+
+<section id="dev">
+  <h2>12. 開発・テスト</h2>
+  <p>コードを直したら、WBPP 用のビルダーファイルを作り直します。WBPP のビルダーは <code>#include</code> を使えないため、ソースを1つのファイルにまとめて生成しています。</p>
+  <pre><code>node tools/build-wbpp-builder.js</code></pre>
+  <p>テストは3種類あります（<code>ApranatNR</code> フォルダで実行）。</p>
+  <pre><code># 単体テスト（Node）
+node --test tests/core.test.js tests/wbpp.test.js
+
+# 単体版の動作テスト（別の PixInsight を起動して実行）
+/Applications/PixInsight/PixInsight.app/Contents/MacOS/PixInsight -n --automation-mode \
+  --no-startup-scripts --no-startup-check-updates --no-splash \
+  -r="$PWD/tests/ApranatNR-SmokeTest.js" --force-exit
+
+# WBPP 組み込みの端から端までのテスト（合成データで実際の WBPP を自動実行、約 40 秒）
+tests/wbpp-e2e/run.sh</code></pre>
+  <p>単体テストには、生成したビルダーファイルがソースと一致しているかの確認も含まれます。WBPP の自動実行モードは、WBPP の設定を保存しません。</p>
+  <p>端から端までのテストでは、PixInsight 本体がときどき異常終了することがあります（WBPP の処理中や終了時。ApranatNR の補正結果は合格していても、後の項目が失敗します）。もう一度実行して確かめてください。異常終了のあと PixInsight の起動が極端に遅くなった場合は、すべての PixInsight を終了して起動し直してください。</p>
+
+  <h3>更新履歴</h3>
+  <ul>
+    <li><b>1.6.0</b>：画面を英語・日本語の両対応にした（既定は英語、画面下の「Language」で切り替え）。WBPP 用設定ファイルのコメントを英語にした。英語版の説明書（ApranatNR-Guide-en.html）を追加</li>
+    <li><b>1.5.2</b>：重ねた画像での星の保護に、隣の8画素の明るさ（星の広がり）による判定を追加。重ねた画像は各画素の一番明るい1枚を除いて作るようにした</li>
+    <li><b>1.5.1</b>：星の保護に、補正前のライトを位置合わせせずに平均した画像での判定を追加。ディザーなしのデータで、淡い星の中心が欠陥画素に乗っても暗くならないようにした</li>
+    <li><b>1.5.0</b>：酩酊ピクセルの判定基準を、明るさごとの実測値から「読み出しノイズ＋暗電流のショットノイズ」の式に変更し、ダーク値には各画素の下側の値を使うようにした。通常レベルから外れた酩酊ピクセルや上向きに跳ねる酩酊ピクセルを見逃さず、明るいホットピクセルを誤って酩酊ピクセルとしないようにした。欠陥画素数の安全上限を 1% から 3% に変更</li>
+    <li><b>1.4.1</b>：CR2 などカメラの RAW ファイルを、デベイヤー前のセンサーの値のまま読み込むように修正</li>
+    <li><b>1.4.0</b>：WBPP への組み込み（Pipeline builder）。設定ファイル、端から端までのテストを追加</li>
+    <li><b>1.3.0</b>：酩酊ピクセル補正に星の保護を追加</li>
+    <li><b>1.2.0</b>：酩酊ピクセルの検出を改良（最大・最小を除いた揺れを、同じダーク値の画素と比べる）。クールファイルの構造の保護</li>
+  </ul>
+</section>
+
+<footer>
+  ApranatNR — 手法の考案：あぷらなーと氏（apranat.exblog.jp）。WBPP は PixInsight のスクリプトで、ApranatNR は WBPP 本体を変更せずに連携します。
+</footer>
+</main>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,34 @@
+// Settings of ApranatNR inside WBPP (keep this file next to ApranatNR-WBPP-Builder.js).
+// Lines starting with "//" are comments. After a change, reopen WBPP or refresh the pipeline view.
+// Details: section 6 of ApranatNR-Guide-en.html / 日本語の説明: ApranatNR-Guide.html の「6. WBPP 用の設定ファイル」
+{
+   // ---- Drunk (RTN) pixel correction ----
+   // true to enable
+   "rtnEnabled": true,
+   // Full path of an existing defect map (rtn_defect_map.xisf). When empty, rtnUseWbppDarks applies.
+   // (On Windows use / as the folder separator, e.g. "C:/Astro/rtn_defect_map.xisf")
+   "rtnDefectMapPath": "",
+   // true: build the defect map from the individual darks registered in WBPP for the lights (8 or more)
+   "rtnUseWbppDarks": true,
+   // Fluctuation factor that marks a defect (1.5 to 20, default 4). Used only when the map is built from darks
+   "rtnRatio": 4.0,
+   // true: do not repair pixels where a star sits (recommended): changes above 5 sigma in a frame,
+   // or a star seen in the unregistered stack of the lights
+   "rtnProtectStructures": true,
+
+   // ---- Cool file correction ----
+   "coolEnabled": true,
+   // Detection threshold in sigma (0 to 10, default 5)
+   "coolSigma": 5.0,
+   // true: do not correct pixels on stars, nebulae and other structures (recommended)
+   "coolProtectStructures": true,
+
+   // ---- Sensor pattern: "auto" (follow WBPP's CFA setting) / "mono" / "bayer" ----
+   "cfaMode": "auto",
+
+   // ---- Cosmicut (writes an additional master to the master folder after the integration) ----
+   // WBPP's own master is still made; this only adds a file for comparison
+   "cosmicutEnabled": false,
+   // true: treat pixels at or below 0 (image borders left by the registration) as no data
+   "cosmicutExcludeZero": true
+}

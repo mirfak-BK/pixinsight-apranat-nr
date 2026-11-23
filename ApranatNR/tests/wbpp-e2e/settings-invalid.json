@@ -1,0 +1,4 @@
+// E2E test settings: invalid on purpose (coolSigma out of range)
+{
+   "coolSigma": 99
+}

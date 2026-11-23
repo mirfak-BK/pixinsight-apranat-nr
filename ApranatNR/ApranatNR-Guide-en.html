@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ApranatNR Guide</title>
+<style>
+:root {
+  --bg: #fbfaf7;
+  --surface: #ffffff;
+  --fg: #1f2328;
+  --muted: #5d6670;
+  --border: #e2ded6;
+  --accent: #2f5d8a;
+  --accent-soft: #e8eff7;
+  --highlight: #fff4d6;
+  --highlight-border: #e3c46b;
+  --note-bg: #eef5ee;
+  --note-border: #6aa06f;
+  --warn-bg: #fdf0ec;
+  --warn-border: #d4805f;
+  --code-bg: #f3f1ec;
+  --shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171a;
+    --surface: #1d2024;
+    --fg: #e6e6e3;
+    --muted: #a3a9b0;
+    --border: #33373d;
+    --accent: #8fb6de;
+    --accent-soft: #23303d;
+    --highlight: #3a3220;
+    --highlight-border: #a88d3f;
+    --note-bg: #1e2a20;
+    --note-border: #5f9465;
+    --warn-bg: #2f221d;
+    --warn-border: #b8704f;
+    --code-bg: #26292e;
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15171a;
+  --surface: #1d2024;
+  --fg: #e6e6e3;
+  --muted: #a3a9b0;
+  --border: #33373d;
+  --accent: #8fb6de;
+  --accent-soft: #23303d;
+  --highlight: #3a3220;
+  --highlight-border: #a88d3f;
+  --note-bg: #1e2a20;
+  --note-border: #5f9465;
+  --warn-bg: #2f221d;
+  --warn-border: #b8704f;
+  --code-bg: #26292e;
+  --shadow: none;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+  -webkit-text-size-adjust: 100%;
+}
+a { color: var(--accent); }
+code, pre, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .88em; }
+code { background: var(--code-bg); padding: .1em .35em; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; line-height: 1.55; }
+pre code { background: none; padding: 0; overflow-wrap: normal; }
+.layout { max-width: 1120px; margin: 0 auto; padding: 0 16px; display: grid; grid-template-columns: 1fr; gap: 32px; }
+header.top { max-width: 1120px; margin: 0 auto; padding: 40px 16px 8px; }
+header.top h1 { font-size: 2rem; line-height: 1.3; margin: 0 0 6px; letter-spacing: .01em; }
+header.top .lead { color: var(--muted); margin: 0; }
+.badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.badge { font-size: .8rem; border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 2px 10px; color: var(--muted); }
+nav.toc { font-size: .92rem; }
+nav.toc .toc-inner { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; box-shadow: var(--shadow); }
+nav.toc h2 { font-size: .85rem; color: var(--muted); margin: 0 0 6px; letter-spacing: .05em; }
+nav.toc ol { margin: 0; padding-left: 1.3em; }
+nav.toc li { margin: 2px 0; }
+nav.toc a { text-decoration: none; }
+nav.toc a:hover { text-decoration: underline; }
+main { min-width: 0; padding-bottom: 64px; }
+section { margin: 0 0 44px; scroll-margin-top: 16px; }
+h2 { font-size: 1.45rem; line-height: 1.4; margin: 0 0 14px; padding-bottom: 6px; border-bottom: 2px solid var(--border); }
+h3 { font-size: 1.12rem; margin: 26px 0 8px; }
+p { margin: 0 0 12px; }
+ul, ol { margin: 0 0 12px; padding-left: 1.4em; }
+li { margin: 3px 0; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; box-shadow: var(--shadow); margin: 0 0 14px; }
+.methods { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 14px; }
+.methods .card { margin: 0; }
+.methods h3 { margin-top: 0; }
+.tag { display: inline-block; font-size: .75rem; padding: 0 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); margin-left: 6px; vertical-align: 2px; }
+.callout { border-left: 4px solid var(--note-border); background: var(--note-bg); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 0 0 14px; }
+.callout.warn { border-left-color: var(--warn-border); background: var(--warn-bg); }
+.callout p:last-child, .callout ul:last-child { margin-bottom: 0; }
+.table-wrap { overflow-x: auto; margin: 0 0 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { background: var(--code-bg); font-weight: 600; white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+td.num { white-space: nowrap; font-variant-numeric: tabular-nums; }
+td:first-child { white-space: nowrap; }
+td:first-child code { overflow-wrap: normal; }
+td:last-child { min-width: 14em; }
+.flow { list-style: none; padding: 0; margin: 0 0 14px; display: flex; flex-direction: column; gap: 0; }
+.flow li { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; margin: 0 0 22px; }
+.flow li:not(:last-child)::after { content: "↓"; position: absolute; left: 50%; bottom: -21px; transform: translateX(-50%); color: var(--muted); font-size: .95rem; line-height: 1; }
+.flow li.hl { background: var(--highlight); border-color: var(--highlight-border); }
+.flow li.opt { border-style: dashed; }
+.flow .who { font-size: .78rem; color: var(--muted); margin-left: 6px; }
+.steps { counter-reset: s; list-style: none; padding: 0; }
+.steps > li { counter-increment: s; position: relative; padding-left: 2.3em; margin: 0 0 10px; }
+.steps > li::before { content: counter(s); position: absolute; left: 0; top: .15em; width: 1.6em; height: 1.6em; border-radius: 50%; background: var(--accent); color: var(--surface); font-size: .85em; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+dl.faq dt { font-weight: 700; margin-top: 14px; }
+dl.faq dd { margin: 4px 0 0; }
+footer { color: var(--muted); font-size: .85rem; border-top: 1px solid var(--border); padding: 16px 0 40px; }
+@media (min-width: 900px) {
+  .layout { grid-template-columns: 240px minmax(0, 1fr); }
+  nav.toc .toc-inner { position: sticky; top: 16px; }
+  nav.toc { align-self: start; position: sticky; top: 16px; }
+  .methods { grid-template-columns: repeat(3, 1fr); }
+  header.top h1 { font-size: 2.3rem; }
+}
+@media print {
+  nav.toc { display: none; }
+  .layout { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>ApranatNR Guide</h1>
+  <p class="lead">A PixInsight script for preprocessing noise countermeasures devised by apranat (あぷらなーと) that WBPP does not have.</p>
+  <div class="badges">
+    <span class="badge">Version 1.6.0</span>
+    <span class="badge">PixInsight 1.9.6 or later</span>
+    <span class="badge">WBPP integration: WBPP 3.2 or later</span>
+    <a class="badge" href="ApranatNR-Guide.html" hreflang="ja">日本語</a>
+  </div>
+</header>
+
+<div class="layout">
+<nav class="toc" aria-label="Contents">
+  <div class="toc-inner">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#methods">The three methods</a></li>
+      <li><a href="#files">Files</a></li>
+      <li><a href="#standalone">Use A: standalone script</a></li>
+      <li><a href="#wbpp">Use B: inside WBPP</a></li>
+      <li><a href="#settings">Settings file for WBPP</a></li>
+      <li><a href="#outputs">Output files</a></li>
+      <li><a href="#defectmap">Reusing a defect map</a></li>
+      <li><a href="#results">Test results</a></li>
+      <li><a href="#limits">Notes and known limitations</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#dev">Development and tests</a></li>
+    </ol>
+  </div>
+</nav>
+
+<main>
+
+<section id="overview">
+  <h2>1. Overview</h2>
+  <p>ApranatNR brings three methods to PixInsight. None of them is part of WBPP (WeightedBatchPreprocessing). The methods were published by apranat on his blog (in Japanese); ApranatNR is an independent implementation.</p>
+  <ul>
+    <li><b>Drunk (RTN) pixel correction</b> (software pixel mapping): <a href="https://apranat.exblog.jp/32142709/">original article</a></li>
+    <li><b>Cool file correction</b>: <a href="https://apranat.exblog.jp/28135658/">original article</a></li>
+    <li><b>Cosmicut</b>: <a href="https://apranat.exblog.jp/31257871/">original article</a></li>
+  </ul>
+  <p>There are two ways to use it.</p>
+  <ul>
+    <li><b>A. Standalone script</b> (<code>ApranatNR.js</code>): corrects frames calibrated by WBPP; registration and integration follow in WBPP or another tool. Good for checking each step.</li>
+    <li><b>B. Inside WBPP</b> (<code>ApranatNR-WBPP-Builder.js</code>): uses WBPP's "Pipeline builder" feature to insert the ApranatNR steps into WBPP's own pipeline. One WBPP run does everything.</li>
+  </ul>
+
+  <h3>Processing flow (inside WBPP)</h3>
+  <ol class="flow">
+    <li>Master dark and master flat <span class="who">WBPP (unchanged)</span></li>
+    <li>Calibration of the lights <span class="who">WBPP</span></li>
+    <li class="hl"><b>① ApranatNR</b>: drunk pixel correction → cool file correction <span class="who">ApranatNR</span></li>
+    <li>Cosmetic correction, debayering <span class="who">WBPP</span></li>
+    <li>Registration, integration → master light <span class="who">WBPP</span></li>
+    <li class="opt">② Cosmicut master (optional, for comparison) <span class="who">ApranatNR</span></li>
+  </ol>
+</section>
+
+<section id="methods">
+  <h2>2. The three methods</h2>
+  <div class="methods">
+    <div class="card">
+      <h3>Drunk pixel correction<span class="tag">①</span></h3>
+      <p>Pixels whose output jumps between two values from frame to frame (RTN: random telegraph noise) are replaced by the value of their surroundings.</p>
+    </div>
+    <div class="card">
+      <h3>Cool file correction<span class="tag">①</span></h3>
+      <p>Pixels that come out darker than their surroundings (cool pixels) are found and lifted by that amount in every frame.</p>
+    </div>
+    <div class="card">
+      <h3>Cosmicut<span class="tag">②</span></h3>
+      <p>After registration, each pixel is averaged without its brightest frame. Cosmic rays and satellite trails disappear.</p>
+    </div>
+  </div>
+
+  <h3>2.1 Drunk (RTN) pixel correction (software pixel mapping)</h3>
+  <p>A drunk pixel jumps between two levels from frame to frame because of a defect in its readout circuit. Its position is fixed for each sensor. A master dark only holds each pixel's average, so dark subtraction does not remove the jumps.</p>
+  <p><b>Detection</b>: individual dark frames are used (8 or more, preferably about 20). Besides FITS and XISF, camera raw files such as CR2 are read as undebayered sensor values.</p>
+  <ul>
+    <li>For each pixel, the fluctuation (standard deviation) over the frames is computed without the pixel's highest and lowest value, so that one-off events such as cosmic rays do not cause false detections.</li>
+    <li>This fluctuation is compared with the fluctuation expected at the pixel's dark level; pixels above <b>4 ×</b> (1.5 to 20 in the settings) are drunk pixels. The expected fluctuation follows the physics of a dark frame:<br>
+      expected² = read noise² + slope × (dark level − normal dark level)<br>
+      The second term is the shot noise of the dark current. The read noise is the median fluctuation of all pixels; the slope comes from "warm" pixels well above the normal level. Hot pixels that only have much dark current fluctuate more because they are brighter, exactly as the formula says, so they are not detected.<br>
+      The dark level used is not the pixel's mean but its <b>lower quartile</b> (mean − 0.674 × fluctuation). A drunk pixel that jumps upward now and then has a raised mean and would look like a warm pixel; its lower quartile stays at the normal level (this type is common in darks of DSLRs such as the Canon EOS 6D).</li>
+    <li>The result is saved as the defect map <code>rtn_defect_map.xisf</code>. Above 3% of all pixels the run stops with an error, since the darks are probably faulty (saturated, for example); a high-gain ASI533MC Pro gives about 1.2%.</li>
+  </ul>
+  <p><b>Repair</b>: in each calibrated, undebayered light, a defect pixel is replaced by the median of the surrounding pixels of the same color (for color cameras, the 8 pixels two pixels away).</p>
+  <p><b>Structure protection</b> (on by default): a pixel is not repaired when the replacement would change it by more than <b>5σ</b> (the spread among same-color pixels of that frame).</p>
+  <ul>
+    <li>A star's center is always brighter than its surroundings, so replacing it dims the star. Without guiding or dithering, the same star stays on the same defect pixel in every frame and the loss remains in the master. The protection prevents this.</li>
+    <li>A faint star buried in the noise of each frame escapes that test. So the unregistered stack of the uncorrected lights (each pixel averaged without its brightest frame, so that cosmic rays do not look like stars) is used as well. A defect pixel is not repaired when either applies:
+      <ul>
+        <li>the pixel is brighter than its same-color neighbors by more than <b>5σ</b>;</li>
+        <li>its 8 adjacent pixels are brighter than their own same-color neighbors, together, by more than <b>3σ</b> (a star's footprint; the trace of a drunk pixel covers one pixel only).</li>
+      </ul>
+      On data taken unguided and without dithering (27 × 10 s, the field hardly moves), 1.43% of the defect pixels were left unrepaired (991 by their own excess, 1,142 by a footprint). For the 218 faint stars whose core sits on a defect pixel, the median flux change went from −3.5% (1.5.0) to +0.1%, and stars dimmed by more than 10% went from 31 to 3. The noise reduction and the defect repair were unchanged.</li>
+    <li>Large one-off outliers on defect pixels (cosmic rays) are also left to the pixel rejection of the integration.</li>
+    <li>Defect pixels whose value is NaN or infinite are always replaced.</li>
+  </ul>
+
+  <h3>2.2 Cool file correction</h3>
+  <ul>
+    <li>The lights are averaged without registration. As long as the field drifts a little, stars and nebulae blur while the dark points of the sensor stay in place.</li>
+    <li>Pixels darker than the median of their same-color neighbors by <b>5σ</b> or more (0 to 10 in the settings; 0 is the article's "threshold zero") are cool pixels; the difference (the lift) is recorded in the "cool file".</li>
+    <li>The cool file is added to those pixels in every frame. Other pixels do not change.</li>
+    <li><b>Structure protection</b> (on by default): only isolated dark points on flat surroundings are corrected. Star images and nebula edges are excluded, because shot noise and brightness changes make pixels there look dark.</li>
+    <li>It works with 2 frames or more; 10 or more are recommended.</li>
+  </ul>
+
+  <h3>2.3 Cosmicut</h3>
+  <ul>
+    <li>For registered frames, each pixel becomes (sum − maximum) ÷ (number of frames − 1): an average that always drops the brightest frame.</li>
+    <li>This is the same calculation as Min/Max rejection in ImageIntegration (1 high, 0 low).</li>
+    <li>Image borders left by the registration (values at or below 0) can be excluded as no data.</li>
+    <li>At least 3 frames are needed.</li>
+  </ul>
+</section>
+
+<section id="files">
+  <h2>3. Files</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>File</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td><code>ApranatNR.js</code></td><td>The standalone script (the file to run in PixInsight)</td></tr>
+      <tr><td><code>ApranatNR-Core.js</code></td><td>Numerical processing (detection, repair, compositing)</td></tr>
+      <tr><td><code>ApranatNR-IO.js</code> / <code>ApranatNR-Engine.js</code></td><td>Image input/output and processing steps</td></tr>
+      <tr><td><code>ApranatNR-GUI.js</code> / <code>ApranatNR-Strings.js</code> / <code>ApranatNR-Version.js</code></td><td>Dialog, dialog messages (English, Japanese), version number</td></tr>
+      <tr><td><code>ApranatNR-WBPP.js</code></td><td>The WBPP connection</td></tr>
+      <tr><td><code>ApranatNR-WBPP-Builder.js</code></td><td>The file to select as WBPP's Pipeline builder (generated from the files above; do not edit)</td></tr>
+      <tr><td><code>ApranatNR-WBPP-Settings.json</code></td><td>Settings for the WBPP integration (keep it next to the builder)</td></tr>
+      <tr><td><code>tools/</code>, <code>tests/</code></td><td>Builder generator and tests</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="standalone">
+  <h2>4. Use A: standalone script</h2>
+  <p>Run <code>ApranatNR.js</code> with "Script &gt; Execute Script File...". After adding its folder in "Script &gt; Feature Scripts...", it starts from "Script &gt; Preprocessing &gt; ApranatNR".</p>
+
+  <h3>Tab ① Before registration (drunk pixels / cool file)</h3>
+  <ol class="steps">
+    <li>Add to <b>Light frames</b> the <code>_c.xisf</code> files from WBPP's <code>calibrated</code> folder (dark/flat calibrated, not registered, not debayered).</li>
+    <li>Leave <b>Sensor pattern</b> on "Automatic". In undebayered color images, only pixels of the same color are used.</li>
+    <li>For <b>drunk pixel correction</b>, check its group title and give one of:
+      <ul>
+        <li>Dark frames: individual darks with the same settings as the lights (8 or more)</li>
+        <li>Existing defect map: an <code>rtn_defect_map.xisf</code> made earlier (the dark analysis is skipped)</li>
+      </ul>
+      "Fluctuation ratio threshold" (default 4) and "Protect stars and other structures (recommended)" can stay as they are.</li>
+    <li>The <b>cool file correction</b> "Detection threshold (σ)" (default 5) and its structure protection can stay as they are.</li>
+    <li>With an empty <b>Output folder</b>, an <code>ApranatNR</code> subfolder is created next to the first light. The default <b>Output file suffix</b> is <code>_anr</code>.</li>
+    <li>Press "① Run". Integrate the corrected frames in WBPP (register only the lights, without calibration masters) or register them with StarAlignment.</li>
+  </ol>
+
+  <h3>Tab ② After registration (Cosmicut)</h3>
+  <ol class="steps">
+    <li>Add the <b>Registered frames</b>.</li>
+    <li>Normally keep "Treat pixels at or below 0 as no data" on.</li>
+    <li>"② Run Cosmicut" writes <code>master_cosmicut.xisf</code>. With "Also save the map of rejected maximum values", the image of the dropped maxima is saved too.</li>
+  </ol>
+  <p>With "Overwrite existing files" off, files that already exist get new names ending in <code>_1</code>, <code>_2</code>, ... The original lights are never overwritten.</p>
+  <p><b>Language</b>: the dialog opens in English. Choose "日本語" under "Language" at the bottom to switch to Japanese; the entries are kept and the choice is remembered. Console messages stay in English.</p>
+</section>
+
+<section id="wbpp">
+  <h2>5. Use B: inside WBPP</h2>
+  <ol class="steps">
+    <li>In WBPP's "Pipeline" tab, enable "Pipeline builder" and select <code>ApranatNR-WBPP-Builder.js</code>. The pipeline view then shows an "ApranatNR" step right after Calibration for each light group.</li>
+    <li>Add lights, darks and flats as usual.
+      <ul>
+        <li>With <b>8 or more individual darks</b> matching the lights, the drunk pixel defect map is built automatically on every run.</li>
+        <li>When only a master dark is added, set an existing defect map in <code>rtnDefectMapPath</code> of the settings file. Otherwise the drunk pixel correction is skipped with a warning.</li>
+      </ul></li>
+    <li>Run. WBPP debayers and processes the frames corrected by ApranatNR.</li>
+  </ol>
+  <div class="callout">
+    <p><b>Errors</b>: a mistake in the settings file is shown in WBPP's pipeline view, and a run stops before the lights are processed. Processing never continues silently without the correction.</p>
+  </div>
+  <ul>
+    <li>The corrected frames need disk space for one more set of calibrated frames (included in WBPP's free space check).</li>
+    <li>Typical time: 20 to 30 seconds for 20 to 27 frames of 3008 × 3008 pixels. Results are not cached; each run redoes the work.</li>
+    <li>The master dark and master flat are not changed.</li>
+  </ul>
+</section>
+
+<section id="settings">
+  <h2>6. Settings file for WBPP</h2>
+  <p>Edit <code>ApranatNR-WBPP-Settings.json</code> with a text editor. Lines starting with <code>//</code> are comments. After saving, reopen WBPP or refresh the pipeline view.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Key</th><th>Default</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>rtnEnabled</code></td><td class="num">true</td><td>Use drunk pixel correction</td></tr>
+      <tr><td><code>rtnDefectMapPath</code></td><td class="num">""</td><td>Full path of an existing defect map. When empty, <code>rtnUseWbppDarks</code> applies. On Windows use <code>/</code> as folder separator</td></tr>
+      <tr><td><code>rtnUseWbppDarks</code></td><td class="num">true</td><td>Build the defect map from the individual darks added to WBPP (8 or more)</td></tr>
+      <tr><td><code>rtnRatio</code></td><td class="num">4.0</td><td>Fluctuation factor that marks a drunk pixel (1.5 to 20); used only when the map is built from darks</td></tr>
+      <tr><td><code>rtnProtectStructures</code></td><td class="num">true</td><td>Structure protection (no repair where the change exceeds 5σ, or where the stack of the uncorrected lights shows a star)</td></tr>
+      <tr><td><code>coolEnabled</code></td><td class="num">true</td><td>Use cool file correction</td></tr>
+      <tr><td><code>coolSigma</code></td><td class="num">5.0</td><td>Cool pixel detection threshold in σ (0 to 10)</td></tr>
+      <tr><td><code>coolProtectStructures</code></td><td class="num">true</td><td>Do not correct pixels on stars, nebulae and other structures</td></tr>
+      <tr><td><code>cfaMode</code></td><td class="num">"auto"</td><td><code>"auto"</code> (follow WBPP's CFA setting), <code>"mono"</code> or <code>"bayer"</code></td></tr>
+      <tr><td><code>cosmicutEnabled</code></td><td class="num">false</td><td>After the integration, write a Cosmicut master to the <code>master</code> folder for comparison (only when registration is enabled)</td></tr>
+      <tr><td><code>cosmicutExcludeZero</code></td><td class="num">true</td><td>Treat pixels at or below 0 (image borders) as no data</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Missing keys take their defaults. Unknown keys, wrong types and values out of range are errors, so that typing mistakes are not missed.</p>
+</section>
+
+<section id="outputs">
+  <h2>7. Output files</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>File</th><th>Content</th></tr></thead>
+    <tbody>
+      <tr><td><code>*_anr.xisf</code></td><td>Corrected frames (<code>*_c_anr.xisf</code> inside WBPP, <code>*_c_anr_d.xisf</code> after debayering). The HISTORY keywords record the processing</td></tr>
+      <tr><td><code>rtn_defect_map.xisf</code></td><td>Drunk pixel defect map (1 = defect). Reusable</td></tr>
+      <tr><td><code>coolfile.xisf</code></td><td>Cool file (the lift of each pixel)</td></tr>
+      <tr><td><code>unregistered_stack.xisf</code></td><td>Unregistered average (after drunk pixel correction; the source of the cool file)</td></tr>
+      <tr><td><code>master_cosmicut.xisf</code></td><td>Cosmicut master (standalone, tab ②)</td></tr>
+      <tr><td><code>masterLight_…_cosmicut.xisf</code></td><td>Cosmicut master inside WBPP (when <code>cosmicutEnabled</code> is true)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Inside WBPP, corrected frames, defect map, cool file and average stack go to <code>apranatnr/&lt;group name&gt;/</code> in the output folder.</p>
+</section>
+
+<section id="defectmap">
+  <h2>8. Reusing a defect map</h2>
+  <p>An <code>rtn_defect_map.xisf</code> can be used for other sessions when:</p>
+  <ul>
+    <li>it comes from the <b>same camera</b> (positions differ between sensors);</li>
+    <li><b>image size, binning and orientation</b> are the same (the size is checked, a vertical flip is not; darks and lights from the same capture software are fine);</li>
+    <li><b>gain and temperature</b> are preferably the same (positions do not change, but the size and frequency of the jumps do, so the detected pixels shift a little; a Gain 460 map has helped Gain 400 lights).</li>
+    <li>Drunk pixels come and go, so one set of 24 darks finds about 60% of them. Maps from darks of other days or temperatures share 60–70% of their pixels (darks of 80 ms at Gain 460 and of 10 s at Gain 400 agreed on 74%).</li>
+    <li>Defect pixels increase over the years; rebuild the map whenever you take new darks.</li>
+  </ul>
+  <p>Whether the master dark used for the calibration is new or old does not matter, because the correction works on the calibrated lights.</p>
+</section>
+
+<section id="results">
+  <h2>9. Test results</h2>
+  <p>ZWO ASI533MC Pro data, compared with WBPP alone (same integration settings and reference frame unless noted).</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Shooting</th><th>Details</th><th>Results</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Unguided, no dithering</td>
+        <td>Gain 400, 27 × 10 s. The field moves only about 1 × 4 pixels in total, so stars and defect pixels stay at almost the same positions</td>
+        <td>1.4: the drunk pixel excess left in the master disappeared; background noise −0.7%. The dimming of star centers seen with 1.2.0 (up to about 40%) fell below 0.2% with the structure protection of 1.3.0. The WBPP and standalone versions gave the same result.<br>1.5.2: defect map of 148,675 pixels; background noise about −1.7%; defect traces (above 5σ) 1.75% → 1.50% (1.63% at defect-free positions); median flux change of bright and faint stars within ±0.2%</td>
+      </tr>
+      <tr>
+        <td>Field shifting between frames (like dithering)</td>
+        <td>Gain 460, 20 × 300 s. The field shifts about 7 pixels per frame, so each defect pixel lands on a different sky position every time</td>
+        <td>1.4: background noise −0.4 to −0.7%; no speckles in either master; drunk pixel excess at the reference frame's defect positions 0.73% → 0.26% (0.44% at defect-free positions); no effect on stars (within ±0.4%).<br>1.5.0: defect map of 136,686 pixels; background noise −1.2 to −1.8%; excess at the newly mapped pixels 0.58% → 0.17%; median change of 200 bright stars −0.02%.<br>1.5.2: 1.43% protected by the stack; background noise about −1.2% (indicative only, as WBPP picked another reference frame); no change in star flux (faint stars +0.2% median, none dimmed by more than 10%)</td>
+      </tr>
+      <tr>
+        <td>Darks</td>
+        <td>24 frames split in half: one half builds the map, the other half is tested</td>
+        <td>Drunk pixels jump by about 20 × the noise of normal pixels in each frame. The correction (without protection) reduced pixels above 5σ by about 15% and above 10σ by about 18%. Map pixels still fluctuated about 4.9 × more in the test half</td>
+      </tr>
+      <tr>
+        <td>Cosmicut</td>
+        <td>Both data sets above</td>
+        <td>Almost the same as WBPP's ESD rejection (noise ratio 0.98 to 1.00 after matching levels)</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout">
+    <p><b>Summary</b>: with this camera the effect is small but consistently positive, and image quality never got worse. The effect is clearest with few frames, with a field that hardly drifts (no dithering), and with cameras that have many cool pixels.</p>
+  </div>
+</section>
+
+<section id="limits">
+  <h2>10. Notes and known limitations</h2>
+  <div class="callout warn">
+    <p><b>The structure protection is too strict in low-noise frames.</b> It judges by how much the replacement changes a pixel. In darks without sky noise, or in short narrowband exposures under a very dark sky, the drunk pixel jumps themselves exceed 5σ, so background pixels that are not stars are left unrepaired too. In a test on darks, about 27% of the map was not repaired (0.6–1.5% in the RGB lights so far). For such data the protection can be turned off.</p>
+  </div>
+  <ul>
+    <li>Master darks are not corrected. A drunk pixel's value in a master dark is its average dark level, which is right to subtract; the pixel is replaced in the lights.</li>
+    <li>The defect map is built from individual darks. A master dark cannot be used, as it has no information on the fluctuation over time.</li>
+    <li>The WBPP integration uses WBPP's official Pipeline builder, but how the step is inserted depends on WBPP's internal structure. After a major WBPP update, check it with the end-to-end test below.</li>
+    <li><b>WBPP remembers the previous file lists.</b> Darks or flats of another target left in the lists can calibrate the lights with darks of another exposure or gain, and the defect map is then built from those darks. After a run, check <code>IC.masterDarkPath</code> and the ApranatNR line "Dark 1/24: …" in the log.</li>
+    <li>WBPP's automatic reference frame selection can change from run to run. To compare masters, use the same reference frame, or align positions and intensity scales first.</li>
+    <li>The protection of faint stars (the stack test) works for undithered data, where the same star stays on the same pixels. In the unguided, undithered test data, 3 of the 218 faint stars whose core sits on a defect pixel were still dimmed by more than 10%.</li>
+    <li>In darks whose temperature changed during the sequence, the dark current of bright hot pixels changes too, so they fluctuate more than the formula (read noise + shot noise) predicts. A few dozen hot pixels may then be marked as drunk pixels.</li>
+  </ul>
+</section>
+
+<section id="faq">
+  <h2>11. FAQ</h2>
+  <dl class="faq">
+    <dt>What are the dark frames for?</dt>
+    <dd>Only to locate the drunk pixels; they are not subtracted from the lights. Without light, changes over time come from the sensor noise alone, so abnormally fluctuating pixels are easy to tell apart.</dd>
+    <dt>Once I have a defect map, do I still need darks?</dt>
+    <dd>No. Give it as "Existing defect map" in the standalone script, or as <code>rtnDefectMapPath</code> inside WBPP.</dd>
+    <dt>Do I use the lights before debayering?</dt>
+    <dd>Yes: calibrated, undebayered single-channel images. For color cameras, pixels of the same color are compared with each other.</dd>
+    <dt>Does it help against noise that gets through WBPP's sigma clipping (ESD rejection)?</dt>
+    <dd>It helps against the noise that rejection handles poorly. Rejection drops values that stand out in a minority of frames at the same sky position, so these get through: ① defects that land on the same position in every frame without dithering, ② drunk pixels that jump in about half of the frames, ③ defect pixels when there are few frames. The drunk pixel correction knows the defect positions from the darks and repairs them frame by frame. Background noise fell by about 1.7% on data taken unguided and without dithering, and by about 1.2–1.4% on data whose field shifts between frames (like dithering). One-off outliers such as cosmic rays are handled well by ESD rejection, so Cosmicut adds almost nothing there.</dd>
+    <dt>Can it make apranat's "median brightness vs brightness fluctuation" plot of darks?</dt>
+    <dd>Yes, with the separate tool <code>DarkPixelPlot</code> (<code>DarkPixelPlot/DarkPixelPlot.js</code>). Select individual darks (8 or more, raw files included) and it writes the plot of each pixel's median against its standard deviation as a PNG. An ApranatNR defect map can be overlaid. It marks pixels with the same criterion as ApranatNR (read noise + dark current shot noise, at each pixel's lower quartile) and draws the typical fluctuation with this formula. Its dialog and plot are available in English and Japanese.</dd>
+    <dt>Why does the structure protection act on darks? Darks have no stars.</dt>
+    <dd>They have none. The protection judges by the size of the change only, so in low-noise darks the drunk pixel jumps themselves exceed the limit (see "Notes and known limitations").</dd>
+  </dl>
+</section>
+
+<section id="dev">
+  <h2>12. Development and tests</h2>
+  <p>After changing the code, regenerate the WBPP builder file. WBPP's builder cannot use <code>#include</code>, so the sources are merged into one generated file.</p>
+  <pre><code>node tools/build-wbpp-builder.js</code></pre>
+  <p>There are three kinds of tests (run in the <code>ApranatNR</code> folder).</p>
+  <pre><code># unit tests (Node)
+node --test tests/*.test.js
+
+# standalone script test (runs in a separate PixInsight instance)
+/Applications/PixInsight/PixInsight.app/Contents/MacOS/PixInsight -n --automation-mode \
+  --no-startup-scripts --no-startup-check-updates --no-splash \
+  -r="$PWD/tests/ApranatNR-SmokeTest.js" --force-exit
+
+# end-to-end test of the WBPP integration (runs the real WBPP on synthetic data, about 40 s)
+tests/wbpp-e2e/run.sh</code></pre>
+  <p>The unit tests also check that the generated builder file matches its sources, and that every dialog message exists in both languages. WBPP's automation mode does not save WBPP's settings.</p>
+  <p>During the end-to-end test, PixInsight itself occasionally crashes (while WBPP runs or on exit); the later checks then fail although the ApranatNR results passed. Run it again. If PixInsight starts extremely slowly after a crash, quit every PixInsight instance and start it again.</p>
+
+  <h3>Version history</h3>
+  <ul>
+    <li><b>1.6.0</b>: English and Japanese dialog (English by default, switch with "Language" at the bottom). English comments in the WBPP settings file. English guide added (this document)</li>
+    <li><b>1.5.2</b>: the stack test of the structure protection also looks at the 8 adjacent pixels (a star's footprint); the stack drops each pixel's brightest frame</li>
+    <li><b>1.5.1</b>: the structure protection also uses the unregistered average of the uncorrected lights, so faint star centers on defect pixels are not dimmed in undithered data</li>
+    <li><b>1.5.0</b>: drunk pixel criterion changed from measured per-level values to the formula "read noise + dark current shot noise", evaluated at each pixel's lower quartile. Drunk pixels away from the normal level and upward-jumping ones are no longer missed, and bright hot pixels are no longer taken for drunk pixels. Safety limit of defect pixels raised from 1% to 3%</li>
+    <li><b>1.4.1</b>: camera raw files such as CR2 are read as undebayered sensor values</li>
+    <li><b>1.4.0</b>: WBPP integration (Pipeline builder), settings file, end-to-end test</li>
+    <li><b>1.3.0</b>: structure protection for the drunk pixel correction</li>
+    <li><b>1.2.0</b>: improved drunk pixel detection (fluctuation without max/min compared with pixels of the same dark level); structure protection for the cool file</li>
+  </ul>
+</section>
+
+<footer>
+  ApranatNR — methods devised by apranat (apranat.exblog.jp). WBPP is a PixInsight script; ApranatNR works with WBPP without modifying it.
+</footer>
+</main>
+</div>
+
+</body>
+</html>
