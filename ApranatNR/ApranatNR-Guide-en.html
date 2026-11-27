@@ -142,7 +142,7 @@ footer { color: var(--muted); font-size: .85rem; border-top: 1px solid var(--bor
   <h1>ApranatNR Guide</h1>
   <p class="lead">A PixInsight script for preprocessing noise countermeasures devised by apranat (あぷらなーと) that WBPP does not have.</p>
   <div class="badges">
-    <span class="badge">Version 1.6.0</span>
+    <span class="badge">Version 1.7.0</span>
     <span class="badge">PixInsight 1.9.6 or later</span>
     <span class="badge">WBPP integration: WBPP 3.2 or later</span>
     <a class="badge" href="ApranatNR-Guide.html" hreflang="ja">日本語</a>
@@ -344,6 +344,9 @@ footer { color: var(--muted); font-size: .85rem; border-top: 1px solid var(--bor
       <tr><td><code>cfaMode</code></td><td class="num">"auto"</td><td><code>"auto"</code> (follow WBPP's CFA setting), <code>"mono"</code> or <code>"bayer"</code></td></tr>
       <tr><td><code>cosmicutEnabled</code></td><td class="num">false</td><td>After the integration, write a Cosmicut master to the <code>master</code> folder for comparison (only when registration is enabled)</td></tr>
       <tr><td><code>cosmicutExcludeZero</code></td><td class="num">true</td><td>Treat pixels at or below 0 (image borders) as no data</td></tr>
+      <tr><td><code>flatSmoothEnabled</code></td><td class="num">true</td><td>Run FlatSmooth (../FlatSmooth) on each master flat the lights use, before the light calibration. The smoothed copy goes to <code>flatsmooth</code> in the output folder and is used only for this run (WBPP's master flat is not changed)</td></tr>
+      <tr><td><code>flatSmoothRadius</code></td><td class="num">0</td><td>Smoothing radius in same-colour pixels: 0 = automatic (a quiet flat is left alone), 1 to 32 = fixed</td></tr>
+      <tr><td><code>flatSmoothTargetPercent</code></td><td class="num">0.3</td><td>Automatic mode: target per-pixel noise of the flat, in percent (0.01 to 10)</td></tr>
     </tbody>
   </table>
   </div>
@@ -470,6 +473,7 @@ tests/wbpp-e2e/run.sh</code></pre>
 
   <h3>Version history</h3>
   <ul>
+    <li><b>1.7.0</b>: FlatSmooth inside the WBPP pipeline builder (the master flat is smoothed before the lights are calibrated; <code>flatSmooth*</code> options)</li>
     <li><b>1.6.0</b>: English and Japanese dialog (English by default, switch with "Language" at the bottom). English comments in the WBPP settings file. English guide added (this document)</li>
     <li><b>1.5.2</b>: the stack test of the structure protection also looks at the 8 adjacent pixels (a star's footprint); the stack drops each pixel's brightest frame</li>
     <li><b>1.5.1</b>: the structure protection also uses the unregistered average of the uncorrected lights, so faint star centers on defect pixels are not dimmed in undithered data</li>

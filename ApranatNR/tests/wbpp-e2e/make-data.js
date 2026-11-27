@@ -25,6 +25,9 @@ const E2E_SHOT = 0.00002;           // variance per unit of signal
 const E2E_RTN_COUNT = 40;
 const E2E_RTN_JUMP = 0.005;         // ~5x dark noise (detected), ~2.4 sigma in lights (repaired)
 const E2E_COOL_COUNT = 10;
+const E2E_FLATS = 3;                // few, noisy flats: FlatSmooth has to smooth the master
+const E2E_FLAT_LEVEL = 0.4;
+const E2E_FLAT_NOISE = 0.03;        // relative, per frame
 const E2E_CFA_RESPONSE = [ [ 0.8, 1.0 ], [ 1.0, 0.6 ] ];   // RGGB
 
 function e2eRandom( seed )
@@ -44,10 +47,17 @@ function e2eRandom( seed )
    };
 }
 
-function e2eKeywords( type )
+/** Optical vignetting shared by the lights and the flats, so that flat fielding is exact. */
+function e2eVignetting( x, y )
+{
+   const r2 = ( ( x - E2E_W / 2 ) * ( x - E2E_W / 2 ) + ( y - E2E_H / 2 ) * ( y - E2E_H / 2 ) ) / ( E2E_W * E2E_W / 4 );
+   return 1 - 0.3 * r2;
+}
+
+function e2eKeywords( type, exposure = "60." )
 {
    return [ new FITSKeyword( "IMAGETYP", "'" + type + "'", "" ),
-            new FITSKeyword( "EXPTIME", "60.", "Exposure time [s]" ),
+            new FITSKeyword( "EXPTIME", exposure, "Exposure time [s]" ),
             new FITSKeyword( "XBINNING", "1", "" ),
             new FITSKeyword( "YBINNING", "1", "" ),
             new FITSKeyword( "GAIN", "100", "" ),
@@ -108,7 +118,7 @@ function e2eMain( base )
          for ( let x = 0; x < E2E_W; ++x )
          {
             const i = y * E2E_W + x;
-            const signal = sky[ i ] * E2E_CFA_RESPONSE[ y % 2 ][ x % 2 ] * ( isCool[ i ] ? 0.5 : 1 );
+            const signal = sky[ i ] * E2E_CFA_RESPONSE[ y % 2 ][ x % 2 ] * e2eVignetting( x, y ) * ( isCool[ i ] ? 0.5 : 1 );
             f[ i ] = Math.min( 1, E2E_DARK_LEVEL + signal +
                                   Math.sqrt( E2E_READ_NOISE * E2E_READ_NOISE + E2E_SHOT * signal ) * rng.gauss() );
          }
@@ -123,6 +133,19 @@ function e2eMain( base )
          f[ i ] = E2E_DARK_LEVEL + E2E_READ_NOISE * rng.gauss();
       rtn.forEach( ( [ x, y ] ) => { f[ y * E2E_W + x ] += ( rng.uniform() < 0.5 ) ? E2E_RTN_JUMP : 0; } );
       anrWriteImage( darkDir + format( "/dark_%02d.xisf", k ), [ f ], E2E_W, E2E_H, { keywords: e2eKeywords( "Dark Frame" ) }, [] );
+   }
+
+   const flatDir = anrEnsureDirectory( base + "/data/flats" );
+   for ( let k = 0; k < E2E_FLATS; ++k )
+   {
+      const f = new Float32Array( E2E_W * E2E_H );
+      for ( let y = 0; y < E2E_H; ++y )
+         for ( let x = 0; x < E2E_W; ++x )
+         {
+            const level = E2E_FLAT_LEVEL * E2E_CFA_RESPONSE[ y % 2 ][ x % 2 ] * e2eVignetting( x, y );
+            f[ y * E2E_W + x ] = level * ( 1 + E2E_FLAT_NOISE * rng.gauss() );
+         }
+      anrWriteImage( flatDir + format( "/flat_%02d.xisf", k ), [ f ], E2E_W, E2E_H, { keywords: e2eKeywords( "Flat Frame", "1." ) }, [] );
    }
 
    File.writeTextFile( base + "/truth.json", JSON.stringify( { width: E2E_W, height: E2E_H, lights: E2E_LIGHTS, rtn: rtn, cool: cool } ) );

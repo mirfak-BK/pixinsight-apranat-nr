@@ -16,6 +16,9 @@ const SOURCES = [
    "ApranatNR-Core.js",
    "ApranatNR-IO.js",
    "ApranatNR-Engine.js",
+   "../FlatSmooth/FlatSmooth-Core.js",
+   "../FlatSmooth/FlatSmooth-Engine.js",
+   "ApranatNR-WBPP-FlatSmooth.js",
    "ApranatNR-WBPP.js"
 ];
 
@@ -25,7 +28,7 @@ const HEADER = [
    "//",
    "// Use: WBPP > Pipeline > Pipeline builder: enable it and select this file.",
    "// Settings: ApranatNR-WBPP-Settings.json in the same folder.",
-   "// Generated from " + SOURCES.join( ", " ) + " by",
+   "// Generated from " + SOURCES.map( n => path.basename( n ) ).join( ", " ) + " by",
    "// tools/build-wbpp-builder.js; edit those files and run the tool again.",
    "// ----------------------------------------------------------------------------",
    ""
@@ -49,7 +52,7 @@ function buildWbppBuilder( root )
       const text = fs.readFileSync( path.join( root, name ), "utf8" );
       if ( /^[ \t]*#/m.test( text ) )
          throw new Error( name + " contains a preprocessor directive, which WBPP cannot evaluate" );
-      return "// ==== " + name + " ====\n" + text.trimEnd() + "\n";
+      return "// ==== " + path.basename( name ) + " ====\n" + text.trimEnd() + "\n";
    } );
    return HEADER + parts.join( "\n" ) + ENTRY_POINT;
 }

@@ -184,3 +184,66 @@ test( "the generated WBPP builder is up to date with the sources", () =>
    const onDisk = fs.readFileSync( path.join( root, BUILDER_FILE ), "utf8" );
    assert.equal( onDisk, buildWbppBuilder( root ), "run: node tools/build-wbpp-builder.js" );
 } );
+
+// ---------------------------------------------------------------------------
+// FlatSmooth
+// ---------------------------------------------------------------------------
+
+const fsw = require( "../ApranatNR-WBPP-FlatSmooth.js" );
+const fsCore = require( "../../FlatSmooth/FlatSmooth-Core.js" );
+
+test( "parseSettings validates the FlatSmooth keys", () =>
+{
+   assert.equal( wbpp.anrWbppParseSettings( "{ \"flatSmoothRadius\": 8 }" ).flatSmoothRadius, 8 );
+   assert.throws( () => wbpp.anrWbppParseSettings( "{ \"flatSmoothRadius\": 2.5 }" ), /flatSmoothRadius.*whole/ );
+   assert.throws( () => wbpp.anrWbppParseSettings( "{ \"flatSmoothRadius\": 33 }" ), /flatSmoothRadius/ );
+   assert.throws( () => wbpp.anrWbppParseSettings( "{ \"flatSmoothTargetPercent\": 0 }" ), /flatSmoothTargetPercent/ );
+   assert.throws( () => wbpp.anrWbppParseSettings( "{ \"flatSmoothEnabled\": \"yes\" }" ), /flatSmoothEnabled/ );
+} );
+
+test( "the FlatSmooth radius limit matches FlatSmooth-Core.js", () =>
+{
+   assert.equal( fsw.ANR_WBPP_FS_MAX_RADIUS, fsCore.FS_MAX_RADIUS );
+} );
+
+test( "flatSmoothCfa follows the WBPP flat group in auto mode and the setting otherwise", () =>
+{
+   assert.equal( fsw.anrWbppFlatSmoothCfa( "auto", true ), "on" );
+   assert.equal( fsw.anrWbppFlatSmoothCfa( "auto", false ), "off" );
+   assert.equal( fsw.anrWbppFlatSmoothCfa( "mono", true ), "off" );
+   assert.equal( fsw.anrWbppFlatSmoothCfa( "bayer", false ), "on" );
+} );
+
+test( "flatSmoothOutputPath puts <name>_smooth.xisf in the output folder", () =>
+{
+   assert.equal( fsw.anrWbppFlatSmoothOutputPath( "/out/flatsmooth", "/out/master/masterFlat_BIN-1_FILTER-L_CFA.xisf" ),
+                 "/out/flatsmooth/masterFlat_BIN-1_FILTER-L_CFA_smooth.xisf" );
+   assert.equal( fsw.anrWbppFlatSmoothOutputPath( "C:/o", "C:\\data\\flat.v2.xisf" ), "C:/o/flat.v2_smooth.xisf" );
+} );
+
+test( "flatSmoothFields maps automatic and fixed radius settings", () =>
+{
+   const d = wbpp.ANR_WBPP_DEFAULT_SETTINGS;
+   const auto = fsw.anrWbppFlatSmoothFields( d, "/m/flat.xisf", "/o", true );
+   assert.deepEqual( auto, { inputPath: "/m/flat.xisf", outputPath: "/o/flat_smooth.xisf", cfaMode: "on",
+                             autoRadius: true, targetPercent: 0.3, fixedRadius: 1, openResult: false } );
+   const fixed = fsw.anrWbppFlatSmoothFields( { ...d, flatSmoothRadius: 6 }, "/m/flat.xisf", "/o", false );
+   assert.equal( fixed.autoRadius, false );
+   assert.equal( fixed.fixedRadius, 6 );
+   assert.equal( fixed.cfaMode, "off" );
+} );
+
+test( "flatGroupsFor lists each used flat once, skipping lights without a flat", () =>
+{
+   const flatOf = { L1: "F1", L2: "F2", L3: "F1", L4: null };
+   assert.deepEqual( fsw.anrWbppFlatGroupsFor( [ "L1", "L2", "L3", "L4" ], g => flatOf[ g ] ), [ "F1", "F2" ] );
+} );
+
+test( "withFilePath swaps the path only while the function runs, also on an error", () =>
+{
+   const item = { filePath: "/m/flat.xisf" };
+   assert.equal( fsw.anrWbppWithFilePath( item, "/o/flat_smooth.xisf", () => item.filePath ), "/o/flat_smooth.xisf" );
+   assert.equal( item.filePath, "/m/flat.xisf" );
+   assert.throws( () => fsw.anrWbppWithFilePath( item, "/x", () => { throw new Error( "boom" ); } ), /boom/ );
+   assert.equal( item.filePath, "/m/flat.xisf" );
+} );

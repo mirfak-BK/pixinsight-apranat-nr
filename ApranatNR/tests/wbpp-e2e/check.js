@@ -1,7 +1,7 @@
 // ----------------------------------------------------------------------------
 // check.js - verifies the WBPP end-to-end runs made by run.sh.
 // Argument: base directory. Writes <base>/report.txt.
-//   <base>/out      WBPP + ApranatNR builder, valid settings (Cosmicut on)
+//   <base>/out      WBPP + ApranatNR builder, valid settings (Cosmicut on, FlatSmooth on)
 //   <base>/out-bad  WBPP + ApranatNR builder, invalid settings
 // ----------------------------------------------------------------------------
 
@@ -39,6 +39,22 @@ function e2eSubdirectories( dir )
       while ( find.next() );
    find.end();
    return out;
+}
+
+// FITS keywords of the main image (WBPP masters are multi-image files, which anrReadFrame refuses)
+function e2eKeywordsOf( filePath )
+{
+   const instance = new FileFormatInstance( new FileFormat( ".xisf", true/*toRead*/, false/*toWrite*/ ) );
+   if ( !instance.open( filePath, "non-interactive" ) )
+      throw new Error( "Unable to open " + filePath );
+   try
+   {
+      return instance.keywords;
+   }
+   finally
+   {
+      instance.close();
+   }
 }
 
 function e2eLogText( outDir )
@@ -104,6 +120,19 @@ function e2eCheckGoodRun( base, truth )
    e2eCheck( masters.some( p => /_cosmicut\.xisf$/.test( p ) ), "Cosmicut master written next to it" );
 
    const log = e2eLogText( out );
+   const smoothFlats = e2eFiles( out + "/flatsmooth", "masterFlat*_smooth.xisf" );
+   e2eCheck( smoothFlats.length === 1, "FlatSmooth wrote one smoothed master flat (" + smoothFlats.length + ")" );
+   if ( smoothFlats.length === 1 )
+   {
+      const smoothHistory = anrReadFrame( smoothFlats[ 0 ] ).keywords.filter( k => k.name === "HISTORY" ).map( k => k.comment ).join( "|" );
+      e2eCheck( /FlatSmooth .*smoothed per CFA colour/.test( smoothHistory ), "smoothed flat HISTORY (per CFA colour)" );
+      const flatName = smoothFlats[ 0 ].substring( smoothFlats[ 0 ].lastIndexOf( "/" ) + 1 );
+      e2eCheck( log.indexOf( "Master flat: " + smoothFlats[ 0 ] ) >= 0, "light calibration used " + flatName );
+   }
+   const plainFlats = e2eFiles( out + "/master", "masterFlat*.xisf" );
+   e2eCheck( plainFlats.length === 1 && !e2eKeywordsOf( plainFlats[ 0 ] ).some( k => /FlatSmooth/.test( k.comment ) ),
+             "WBPP master flat left unchanged" );
+   e2eCheck( /FlatSmooth: radius \d+, pixel noise/.test( log ), "process log reports the FlatSmooth step" );
    e2eCheck( /ApranatNR: 12 frames \(RTN from 10 darks \+ cool file\)/.test( log ), "process log reports the ApranatNR step" );
    const failed = log.match( /Execution summary: (\d+) operation\(s\) failed/ );
    e2eCheck( !failed || failed[ 1 ] === "0", "no failed WBPP operation" + ( failed ? " (" + failed[ 1 ] + ")" : "" ) );

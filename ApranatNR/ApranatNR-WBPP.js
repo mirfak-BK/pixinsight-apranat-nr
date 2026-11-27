@@ -3,6 +3,8 @@
 //
 // WBPP (3.2+) lets a "pipeline builder" script assemble the light pipeline.
 // This module builds the standard WBPP light pipeline and inserts:
+//   - optionally, one "FlatSmooth" step per master flat used by the lights,
+//     before the light calibration (see ApranatNR-WBPP-FlatSmooth.js)
 //   - one "ApranatNR" step per light group, right after its calibration
 //     (before cosmetic correction / debayering): RTN pixel mapping + cool file
 //   - optionally, after the integration, one "ApranatNR Cosmicut" step per
@@ -36,7 +38,10 @@ const ANR_WBPP_DEFAULT_SETTINGS = Object.freeze( {
    coolProtectStructures: true,
    cfaMode: "auto",
    cosmicutEnabled: false,
-   cosmicutExcludeZero: true
+   cosmicutExcludeZero: true,
+   flatSmoothEnabled: true,
+   flatSmoothRadius: 0,
+   flatSmoothTargetPercent: 0.3
 } );
 
 const ANR_WBPP_SETTINGS_SCHEMA = Object.freeze( {
@@ -50,7 +55,10 @@ const ANR_WBPP_SETTINGS_SCHEMA = Object.freeze( {
    coolProtectStructures: { type: "boolean" },
    cfaMode: { type: "string", values: Object.keys( ANR_WBPP_CFA_MODES ) },
    cosmicutEnabled: { type: "boolean" },
-   cosmicutExcludeZero: { type: "boolean" }
+   cosmicutExcludeZero: { type: "boolean" },
+   flatSmoothEnabled: { type: "boolean" },
+   flatSmoothRadius: { type: "number", min: 0, max: 32, integer: true },   // 0 = automatic
+   flatSmoothTargetPercent: { type: "number", min: 0.01, max: 10 }
 } );
 
 // ---------------------------------------------------------------------------
@@ -63,6 +71,8 @@ function anrWbppCheckValue( key, value, rule )
       return "\"" + key + "\" must be a " + rule.type;
    if ( rule.type === "number" && !( Number.isFinite( value ) && value >= rule.min && value <= rule.max ) )
       return "\"" + key + "\" must be between " + rule.min + " and " + rule.max;
+   if ( rule.integer && !Number.isInteger( value ) )
+      return "\"" + key + "\" must be a whole number";
    if ( rule.values && rule.values.indexOf( value ) < 0 )
       return "\"" + key + "\" must be one of " + rule.values.map( v => "\"" + v + "\"" ).join( ", " );
    return null;
@@ -360,8 +370,10 @@ function anrWbppAddSteps( engine, settings, start )
    const calibratedGroupOf = e =>
       ( e.operation instanceof engine.calibrationOperation && e.operation.group && e.operation.group.imageType == ImageType.Light )
          ? e.operation.group : null;
-   const entries = anrWbppInsertAfterCalibration( queue.operations, start, calibratedGroupOf, additions )
-      .concat( anrWbppCosmicutEntries( engine, settings ) );
+   const withAnr = anrWbppInsertAfterCalibration( queue.operations, start, calibratedGroupOf, additions );
+   // FlatSmooth runs after all master flats exist and before any light calibration
+   const flatSmooth = anrWbppFlatSmoothEntries( engine, settings, withAnr.slice( start ), calibratedGroupOf );
+   const entries = withAnr.slice( 0, start ).concat( flatSmooth, withAnr.slice( start ), anrWbppCosmicutEntries( engine, settings ) );
    anrWbppReplaceQueue( queue, entries );
 }
 

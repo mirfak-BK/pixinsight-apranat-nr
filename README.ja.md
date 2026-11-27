@@ -8,7 +8,7 @@
 |---|---|
 | [ApranatNR](ApranatNR/README.ja.md) | 酩酊ピクセル補正（ソフトウェア・ピクセルマッピング）、クールファイル補正法、コスミカット法。単体でも、WBPP 公式の Pipeline builder を使って WBPP に組み込んでも動きます |
 | [DarkPixelPlot](DarkPixelPlot/README.ja.md) | 個別ダークから画素ごとの輝度中央値と輝度揺らぎのグラフを作り、通常の画素・ホットピクセル・酩酊ピクセルを見分けます |
-| [FlatSmooth](FlatSmooth/README.ja.md) | マスターフラットの画素ごとのノイズを調べ、CFAの色ごとに平滑化します。ノイズの多いフラットが原因の縮緬ノイズを防ぎます |
+| [FlatSmooth](FlatSmooth/README.ja.md) | マスターフラットの画素ごとのノイズを調べ、CFAの色ごとに平滑化します。ノイズの多いフラットが原因の縮緬ノイズを防ぎます。ApranatNR のパイプラインビルダーで WBPP の中でも動きます |
 
 どのスクリプトも画面は英語（既定）と日本語に対応しています。画面下の「Language」で切り替えます。
 

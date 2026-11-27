@@ -19,6 +19,8 @@ Trade-off: pixel-to-pixel sensitivity differences (PRNU) and dust shadows smalle
 
 Run `FlatSmooth.js` (Script > Execute Script File...), choose the master flat, press "Check", then "Smooth and save". In WBPP, remove the individual flat frames and add the `_smooth.xisf` file instead.
 
+**Automatically inside WBPP:** the ApranatNR pipeline builder (`../ApranatNR/ApranatNR-WBPP-Builder.js`) runs FlatSmooth on each master flat after WBPP builds it (or on a master flat you added) and calibrates the lights with the smoothed copy, written to `<output>/flatsmooth/`. WBPP's own master flat and file list are not changed. Options: `flatSmoothEnabled`, `flatSmoothRadius` (0 = automatic) and `flatSmoothTargetPercent` in `ApranatNR-WBPP-Settings.json`. To use only FlatSmooth, set `rtnEnabled` and `coolEnabled` to false there.
+
 Unattended (headless PixInsight):
 
 ```text

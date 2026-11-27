@@ -142,7 +142,7 @@ footer { color: var(--muted); font-size: .85rem; border-top: 1px solid var(--bor
   <h1>ApranatNR 説明書</h1>
   <p class="lead">あぷらなーと氏が考案した、WBPPに無いノイズ対策の前処理を PixInsight で行うスクリプトです。</p>
   <div class="badges">
-    <span class="badge">バージョン 1.6.0</span>
+    <span class="badge">バージョン 1.7.0</span>
     <span class="badge">PixInsight 1.9.6 以降</span>
     <span class="badge">WBPP 組み込みは WBPP 3.2 以降</span>
     <a class="badge" href="ApranatNR-Guide-en.html" hreflang="en">English</a>
@@ -344,6 +344,9 @@ footer { color: var(--muted); font-size: .85rem; border-top: 1px solid var(--bor
       <tr><td><code>cfaMode</code></td><td class="num">"auto"</td><td><code>"auto"</code>（WBPP の CFA 設定に従う）・<code>"mono"</code>・<code>"bayer"</code></td></tr>
       <tr><td><code>cosmicutEnabled</code></td><td class="num">false</td><td>積分後、比較用のコスミカットのマスターを <code>master</code> フォルダに書き出す（位置合わせが有効なときだけ）</td></tr>
       <tr><td><code>cosmicutExcludeZero</code></td><td class="num">true</td><td>値が 0 以下の画素（画像の縁）をデータなしとして扱う</td></tr>
+      <tr><td><code>flatSmoothEnabled</code></td><td class="num">true</td><td>ライトの較正の前に、使うマスターフラットへ FlatSmooth（../FlatSmooth）をかける。平滑化版は出力フォルダの <code>flatsmooth</code> に書かれ、この実行の較正だけに使う（WBPP のマスターフラットは変えない）</td></tr>
+      <tr><td><code>flatSmoothRadius</code></td><td class="num">0</td><td>平滑化の半径（同じ色の画素単位）。0 = 自動（ノイズの少ないフラットはそのまま）、1〜32 = 固定</td></tr>
+      <tr><td><code>flatSmoothTargetPercent</code></td><td class="num">0.3</td><td>自動のときの目標（フラットの画素ノイズ、%、0.01〜10）</td></tr>
     </tbody>
   </table>
   </div>
@@ -470,6 +473,7 @@ tests/wbpp-e2e/run.sh</code></pre>
 
   <h3>更新履歴</h3>
   <ul>
+    <li><b>1.7.0</b>：WBPP のパイプラインビルダーに FlatSmooth を組み込んだ（マスターフラットを平滑化してからライトを較正。<code>flatSmooth*</code> の設定）</li>
     <li><b>1.6.0</b>：画面を英語・日本語の両対応にした（既定は英語、画面下の「Language」で切り替え）。WBPP 用設定ファイルのコメントを英語にした。英語版の説明書（ApranatNR-Guide-en.html）を追加</li>
     <li><b>1.5.2</b>：重ねた画像での星の保護に、隣の8画素の明るさ（星の広がり）による判定を追加。重ねた画像は各画素の一番明るい1枚を除いて作るようにした</li>
     <li><b>1.5.1</b>：星の保護に、補正前のライトを位置合わせせずに平均した画像での判定を追加。ディザーなしのデータで、淡い星の中心が欠陥画素に乗っても暗くならないようにした</li>

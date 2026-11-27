@@ -18,7 +18,7 @@
 ## 使い方
 
 - **単体スクリプト**：`ApranatNR.js` を実行します（Script > Execute Script File...）。① タブでキャリブレーション済み・ディベイヤー前のライトを補正し、② タブで位置合わせ済みフレームからコスミカットのマスターを作ります。
-- **WBPP に組み込む**：WBPP の Pipeline タブで「Pipeline builder」を有効にし、`ApranatNR-WBPP-Builder.js` を選びます。キャリブレーションの直後に ApranatNR の工程が入ります。設定は同じフォルダの `ApranatNR-WBPP-Settings.json` です。
+- **WBPP に組み込む**：WBPP の Pipeline タブで「Pipeline builder」を有効にし、`ApranatNR-WBPP-Builder.js` を選びます。キャリブレーションの直後に ApranatNR の工程が入ります。設定は同じフォルダの `ApranatNR-WBPP-Settings.json` です。ライトの較正の前に、ライトが使うマスターフラットへ [FlatSmooth](../FlatSmooth/README.ja.md) もかけます（`flatSmooth*` の設定。ノイズの少ないフラットはそのまま使います）。
 - 画面は最初は英語です。画面下の「Language」で「日本語」を選ぶと切り替わり、次回からも日本語で開きます。
 
 詳しい説明：[ApranatNR-Guide.html](ApranatNR-Guide.html)（日本語）、[ApranatNR-Guide-en.html](ApranatNR-Guide-en.html)（英語）

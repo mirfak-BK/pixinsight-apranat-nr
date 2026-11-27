@@ -19,6 +19,8 @@
 
 `FlatSmooth.js` を実行し（Script > Execute Script File...）、マスターフラットを選んで「調べる」、続いて「平滑化して保存」を押します。WBPPでは個々のフラットを外し、代わりに `_smooth.xisf` を入れてください。
 
+**WBPPの中で自動実行：** ApranatNR のパイプラインビルダー（`../ApranatNR/ApranatNR-WBPP-Builder.js`）を使うと、WBPPが作ったマスターフラット（または自分で入れたマスターフラット）に FlatSmooth をかけ、`<出力>/flatsmooth/` に書いた平滑化版でライトを較正します。WBPPのマスターフラットとファイルリストは変わりません。設定は `ApranatNR-WBPP-Settings.json` の `flatSmoothEnabled`、`flatSmoothRadius`（0 = 自動）、`flatSmoothTargetPercent` です。FlatSmooth だけを使うときは、そこで `rtnEnabled` と `coolEnabled` を false にしてください。
+
 無人実行（ヘッドレスのPixInsight）:
 
 ```text

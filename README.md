@@ -8,7 +8,7 @@ Two PixInsight scripts that bring the preprocessing noise countermeasures publis
 |---|---|
 | [ApranatNR](ApranatNR/README.md) | Drunk (RTN) pixel correction (software pixel mapping), cool file correction and Cosmicut. Runs standalone or inside WBPP through WBPP's official Pipeline builder |
 | [DarkPixelPlot](DarkPixelPlot/README.md) | Plots each pixel's median brightness against its fluctuation over a sequence of dark frames, showing normal, hot and drunk pixels |
-| [FlatSmooth](FlatSmooth/README.md) | Checks a master flat for per-pixel noise and smooths it within each CFA colour, so that a noisy flat does not cause walking noise |
+| [FlatSmooth](FlatSmooth/README.md) | Checks a master flat for per-pixel noise and smooths it within each CFA colour, so that a noisy flat does not cause walking noise. Also runs inside WBPP through the ApranatNR pipeline builder |
 
 All scripts have an English (default) and a Japanese user interface.
 

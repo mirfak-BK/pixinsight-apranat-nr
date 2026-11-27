@@ -3,7 +3,7 @@
 //
 // Use: WBPP > Pipeline > Pipeline builder: enable it and select this file.
 // Settings: ApranatNR-WBPP-Settings.json in the same folder.
-// Generated from ApranatNR-Version.js, ApranatNR-Core.js, ApranatNR-IO.js, ApranatNR-Engine.js, ApranatNR-WBPP.js by
+// Generated from ApranatNR-Version.js, ApranatNR-Core.js, ApranatNR-IO.js, ApranatNR-Engine.js, FlatSmooth-Core.js, FlatSmooth-Engine.js, ApranatNR-WBPP-FlatSmooth.js, ApranatNR-WBPP.js by
 // tools/build-wbpp-builder.js; edit those files and run the tool again.
 // ----------------------------------------------------------------------------
 // ==== ApranatNR-Version.js ====
@@ -15,7 +15,7 @@
 // ----------------------------------------------------------------------------
 
 const ANR_TITLE = "ApranatNR";
-const ANR_VERSION = "1.6.0";
+const ANR_VERSION = "1.7.0";
 
 // ==== ApranatNR-Core.js ====
 // ----------------------------------------------------------------------------
@@ -1300,12 +1300,713 @@ function anrRunStageB( p )
    return masterPath;
 }
 
+// ==== FlatSmooth-Core.js ====
+// ----------------------------------------------------------------------------
+// FlatSmooth-Core.js - pure numeric code (no PixInsight objects), shared by
+// the script and the node tests.
+//
+// A master flat built from too few or too dim flat frames carries per-pixel
+// noise. Dividing every light by it stamps the same pattern on all frames at
+// the same sensor position; drift between frames then smears it into
+// "walking noise" (diagonal streaks). Smoothing the flat within each CFA
+// colour removes that noise and keeps the vignetting and dust shading.
+// ----------------------------------------------------------------------------
+
+const FS_SMOOTH_PASSES = 3;        // 3 box passes approximate a Gaussian
+const FS_CLIP_SIGMAS = 4.0;
+const FS_NOISE_RADIUS = 2;         // 5x5 local mean for the noise estimate
+const FS_SAMPLE_STRIDE = 3;        // robust statistics on every 3rd row and column
+const FS_MAX_RADIUS = 32;
+const FS_MAD_TO_SIGMA = 1.4826;
+
+/** Median of a numeric array (finite values only); NaN when empty. */
+function fsMedian( values )
+{
+   const v = Float64Array.from( Array.prototype.filter.call( values, Number.isFinite ) ).sort();
+   if ( v.length === 0 )
+      return NaN;
+   const h = v.length >> 1;
+   return ( v.length & 1 ) ? v[ h ] : 0.5 * ( v[ h - 1 ] + v[ h ] );
+}
+
+/** Robust standard deviation: 1.4826 x median absolute deviation. */
+function fsMadSigma( values )
+{
+   const m = fsMedian( values );
+   return FS_MAD_TO_SIGMA * fsMedian( Array.prototype.map.call( values, x => Math.abs( x - m ) ) );
+}
+
+/** Values of `plane` (w x h) on every `stride`-th row and column. */
+function fsSubsample( plane, w, h, stride )
+{
+   const out = [];
+   for ( let y = 0; y < h; y += stride )
+      for ( let x = 0; x < w; x += stride )
+         out.push( plane[ y * w + x ] );
+   return out;
+}
+
+/** One-dimensional running mean over 2r+1 samples, edges replicated. */
+function fsBoxLine( src, srcOffset, stride, n, r, dst, dstOffset )
+{
+   const at = i => src[ srcOffset + Math.min( n - 1, Math.max( 0, i ) ) * stride ];
+   let sum = 0;
+   for ( let i = -r; i <= r; ++i )
+      sum += at( i );
+   const norm = 1 / ( 2 * r + 1 );
+   for ( let i = 0; i < n; ++i )
+   {
+      dst[ dstOffset + i * stride ] = sum * norm;
+      sum += at( i + r + 1 ) - at( i - r );
+   }
+}
+
+/** Mean over a (2r+1)^2 box with replicated edges; returns a new Float64Array. */
+function fsBoxMean( plane, w, h, r )
+{
+   const tmp = new Float64Array( w * h );
+   const out = new Float64Array( w * h );
+   for ( let y = 0; y < h; ++y )
+      fsBoxLine( plane, y * w, 1, w, r, tmp, y * w );
+   for ( let x = 0; x < w; ++x )
+      fsBoxLine( tmp, x, w, h, r, out, x );
+   return out;
+}
+
+/**
+ * Sample at (x, y), linearly extrapolated one pixel beyond the edges so that
+ * a shading gradient does not bias edge pixels (needs w, h >= 2).
+ */
+function fsSampleExtrapolated( plane, w, h, x, y )
+{
+   if ( x < 0 ) return 2 * fsSampleExtrapolated( plane, w, h, 0, y ) - fsSampleExtrapolated( plane, w, h, 1, y );
+   if ( x >= w ) return 2 * fsSampleExtrapolated( plane, w, h, w - 1, y ) - fsSampleExtrapolated( plane, w, h, w - 2, y );
+   if ( y < 0 ) return 2 * plane[ x ] - plane[ w + x ];
+   if ( y >= h ) return 2 * plane[ ( h - 1 ) * w + x ] - plane[ ( h - 2 ) * w + x ];
+   return plane[ y * w + x ];
+}
+
+/**
+ * Median of the 8 neighbours of each pixel, without the pixel itself:
+ * robust to isolated outliers, and the residual against it has no spike at
+ * zero (which would shrink a MAD-based sigma).
+ */
+function fsNeighbourMedian( plane, w, h )
+{
+   const out = new Float64Array( w * h );
+   const v = new Float64Array( 8 );
+   for ( let y = 0; y < h; ++y )
+      for ( let x = 0; x < w; ++x )
+      {
+         const inside = x > 0 && y > 0 && x < w - 1 && y < h - 1;
+         let k = 0;
+         for ( let j = -1; j <= 1; ++j )
+            for ( let i = -1; i <= 1; ++i )
+               if ( i !== 0 || j !== 0 )
+                  v[ k++ ] = inside ? plane[ ( y + j ) * w + x + i ] : fsSampleExtrapolated( plane, w, h, x + i, y + j );
+         v.sort();
+         out[ y * w + x ] = 0.5 * ( v[ 3 ] + v[ 4 ] );
+      }
+   return out;
+}
+
+/** Pixels of one CFA phase (or the whole plane when step = 1) as a new array. */
+function fsExtractPhase( plane, w, h, step, dx, dy )
+{
+   const pw = Math.ceil( ( w - dx ) / step ), ph = Math.ceil( ( h - dy ) / step );
+   const data = new Float64Array( pw * ph );
+   for ( let y = 0; y < ph; ++y )
+      for ( let x = 0; x < pw; ++x )
+         data[ y * pw + x ] = plane[ ( dy + y * step ) * w + dx + x * step ];
+   return { data: data, width: pw, height: ph };
+}
+
+/**
+ * Relative per-pixel noise of a flat phase: robust std of (pixel - local
+ * mean) / local mean, corrected for the pixel's own weight in the mean.
+ */
+function fsRelativeNoise( data, w, h )
+{
+   const mean = fsBoxMean( data, w, h, FS_NOISE_RADIUS );
+   const rel = new Float64Array( data.length );
+   for ( let i = 0; i < data.length; ++i )
+      rel[ i ] = ( mean[ i ] > 0 && Number.isFinite( data[ i ] ) ) ? ( data[ i ] - mean[ i ] ) / mean[ i ] : NaN;
+   const n = ( 2 * FS_NOISE_RADIUS + 1 ) * ( 2 * FS_NOISE_RADIUS + 1 );
+   return fsMadSigma( fsSubsample( rel, w, h, FS_SAMPLE_STRIDE ) ) / Math.sqrt( 1 - 1 / n );
+}
+
+/** 1-D weights of `passes` box filters of radius r convolved together. */
+function fsKernel1D( r, passes )
+{
+   const box = new Array( 2 * r + 1 ).fill( 1 / ( 2 * r + 1 ) );
+   let k = [ 1 ];
+   for ( let p = 0; p < passes; ++p )
+   {
+      const next = new Array( k.length + box.length - 1 ).fill( 0 );
+      k.forEach( ( a, i ) => box.forEach( ( b, j ) => { next[ i + j ] += a * b; } ) );
+      k = next;
+   }
+   return k;
+}
+
+/** Factor by which the 2-D smoothing reduces white pixel noise: sqrt(sum w^2). */
+function fsNoiseFactor( r, passes )
+{
+   if ( r <= 0 )
+      return 1;
+   return fsKernel1D( r, passes ).reduce( ( s, w ) => s + w * w, 0 );   // (sum w1^2) = sqrt of the 2-D sum
+}
+
+/**
+ * Smallest radius whose smoothing brings `noise` down to `target`; 0 when the
+ * flat is already quiet enough, FS_MAX_RADIUS at most.
+ */
+function fsChooseRadius( noise, target, passes )
+{
+   if ( !( noise > target ) )
+      return 0;
+   for ( let r = 1; r <= FS_MAX_RADIUS; ++r )
+      if ( noise * fsNoiseFactor( r, passes ) <= target )
+         return r;
+   return FS_MAX_RADIUS;
+}
+
+/**
+ * Smooths one phase: pixels deviating more than FS_CLIP_SIGMAS from the
+ * median of their 8 neighbours (hot/dead pixels, non-finite or non-positive values) are
+ * replaced by it (a median, so one hot pixel cannot drag its neighbours), then `passes` box means of radius r are applied.
+ * @returns {{data: Float64Array, clipped: number}}
+ */
+function fsSmoothPhase( data, w, h, r, passes )
+{
+   const finite = Float64Array.from( data, v => ( Number.isFinite( v ) && v > 0 ) ? v : NaN );
+   const fill = fsMedian( fsSubsample( finite, w, h, FS_SAMPLE_STRIDE ) );
+   const base = finite.map( v => Number.isNaN( v ) ? fill : v );
+   const local = fsNeighbourMedian( base, w, h );
+   const residual = base.map( ( v, i ) => v - local[ i ] );
+   const sigma = fsMadSigma( fsSubsample( residual, w, h, FS_SAMPLE_STRIDE ) );
+   let clipped = 0;
+   let out = base.map( ( v, i ) =>
+   {
+      if ( Number.isNaN( finite[ i ] ) || Math.abs( residual[ i ] ) > FS_CLIP_SIGMAS * sigma )
+      {
+         ++clipped;
+         return local[ i ];
+      }
+      return v;
+   } );
+   for ( let p = 0; p < passes; ++p )
+      out = fsBoxMean( out, w, h, r );
+   return { data: out, clipped: clipped };
+}
+
+/** CFA phase offsets [dx, dy] for step 2, or the whole plane for step 1. */
+function fsPhases( step )
+{
+   return ( step === 2 ) ? [ [ 0, 0 ], [ 1, 0 ], [ 0, 1 ], [ 1, 1 ] ] : [ [ 0, 0 ] ];
+}
+
+/**
+ * Measures each phase of a plane.
+ * @returns {Array<{dx: number, dy: number, mean: number, noise: number}>}
+ */
+function fsAnalyzePlane( plane, w, h, step )
+{
+   return fsPhases( step ).map( ( [ dx, dy ] ) =>
+   {
+      const ph = fsExtractPhase( plane, w, h, step, dx, dy );
+      return { dx: dx, dy: dy, mean: fsMedian( fsSubsample( ph.data, ph.width, ph.height, FS_SAMPLE_STRIDE ) ),
+               noise: fsRelativeNoise( ph.data, ph.width, ph.height ) };
+   } );
+}
+
+/**
+ * Smooths every phase of a plane with radius r (in phase pixels).
+ * @returns {{plane: Float32Array, clipped: number}}  a new plane
+ */
+function fsSmoothPlane( plane, w, h, step, r, passes )
+{
+   const out = new Float32Array( w * h );
+   let clipped = 0;
+   for ( const [ dx, dy ] of fsPhases( step ) )
+   {
+      const ph = fsExtractPhase( plane, w, h, step, dx, dy );
+      const s = fsSmoothPhase( ph.data, ph.width, ph.height, r, passes );
+      clipped += s.clipped;
+      for ( let y = 0; y < ph.height; ++y )
+         for ( let x = 0; x < ph.width; ++x )
+            out[ ( dy + y * step ) * w + dx + x * step ] = s.data[ y * ph.width + x ];
+   }
+   return { plane: out, clipped: clipped };
+}
+
+if ( typeof module !== "undefined" && module.exports )
+   module.exports = {
+      FS_SMOOTH_PASSES, FS_MAX_RADIUS,
+      fsMedian, fsMadSigma, fsNeighbourMedian, fsSubsample, fsBoxMean, fsExtractPhase, fsRelativeNoise, fsKernel1D, fsNoiseFactor,
+      fsChooseRadius, fsSmoothPhase, fsPhases, fsAnalyzePlane, fsSmoothPlane
+   };
+
+// ==== FlatSmooth-Engine.js ====
+// ----------------------------------------------------------------------------
+// FlatSmooth-Engine.js - reads the master flat, measures, smooths and saves.
+// ----------------------------------------------------------------------------
+
+const FS_TITLE = "FlatSmooth";
+const FS_VERSION = "1.0.0";
+const FS_IO_HINTS = "non-interactive raw cfa";
+const FS_OUTPUT_SUFFIX = "_smooth";
+const FS_OUTPUT_EXT = ".xisf";
+const FS_DEFAULT_TARGET_PERCENT = 0.3;
+const FS_DEFAULT_FIXED_RADIUS = 4;
+const FS_CFA_PROPERTY = "PCL:CFASourcePattern";
+const FS_BAYER_KEYWORD = "BAYERPAT";
+
+class FsParameters
+{
+   inputPath = "";
+   outputPath = "";
+   cfaMode = "auto";                        // "auto" | "on" | "off"
+   autoRadius = true;
+   targetPercent = FS_DEFAULT_TARGET_PERCENT;
+   fixedRadius = FS_DEFAULT_FIXED_RADIUS;
+   openResult = true;
+   language = "";                           // unattended runs only (--lang)
+}
+
+/** Validates parameters before any file is read; throws with a clear message. */
+function fsValidate( p )
+{
+   if ( !p.inputPath )
+      throw new Error( "No master flat given." );
+   if ( !File.exists( p.inputPath ) )
+      throw new Error( "File not found: " + p.inputPath );
+   if ( [ "auto", "on", "off" ].indexOf( p.cfaMode ) < 0 )
+      throw new Error( "CFA mode must be auto, on or off: " + p.cfaMode );
+   if ( p.autoRadius && !( p.targetPercent > 0 && p.targetPercent < 100 ) )
+      throw new Error( "The noise target must be between 0 and 100 %: " + p.targetPercent );
+   if ( !p.autoRadius && !( Number.isInteger( p.fixedRadius ) && p.fixedRadius >= 1 && p.fixedRadius <= FS_MAX_RADIUS ) )
+      throw new Error( "The radius must be an integer from 1 to " + FS_MAX_RADIUS + ": " + p.fixedRadius );
+}
+
+function fsReadProperties( format, instance )
+{
+   if ( !( format.canStoreImageProperties && format.supportsViewProperties ) )
+      return [];
+   const list = instance.imageProperties;
+   const properties = [];
+   for ( let i = 0; i < list.length; ++i )
+   {
+      const value = instance.readImageProperty( list[ i ][ 0 ] );
+      if ( value != null )
+         properties.push( { id: list[ i ][ 0 ], type: list[ i ][ 1 ], value: value } );
+   }
+   return properties;
+}
+
+/** Reads an image file as 32-bit float planes with its keywords and properties. */
+function fsReadImage( filePath )
+{
+   const suffix = File.extractExtension( filePath ).toLowerCase();
+   const format = new FileFormat( suffix, true/*toRead*/, false/*toWrite*/ );
+   if ( format.isNull )
+      throw new Error( "No installed file format can read '" + suffix + "' files: " + filePath );
+   const instance = new FileFormatInstance( format );
+   if ( instance.isNull )
+      throw new Error( "Unable to instantiate file format: " + format.name );
+   const descriptions = instance.open( filePath, FS_IO_HINTS );
+   if ( !descriptions || descriptions.length < 1 )
+      throw new Error( "Unable to open file: " + filePath );
+   const image = new Image( 1, 1, 1, ColorSpace.Gray, 32, PixelSampleType.Float );
+   try
+   {
+      // WBPP masters also hold rejection maps after the main image: readImage
+      // reads the first (main) image; the rejection maps are not copied
+      if ( !instance.readImage( image ) )
+         throw new Error( "Unable to read file: " + filePath );
+      const planes = [];
+      for ( let c = 0; c < image.numberOfChannels; ++c )
+      {
+         const plane = new Float32Array( image.width * image.height );
+         image.getSamples( plane, new Rect( 0, 0, image.width, image.height ), c );
+         planes.push( plane );
+      }
+      return { width: image.width, height: image.height, planes: planes,
+               keywords: format.canStoreKeywords ? instance.keywords : [],
+               properties: fsReadProperties( format, instance ), description: descriptions[ 0 ] };
+   }
+   finally
+   {
+      instance.close();
+      image.free();
+   }
+}
+
+/** Writes float planes as a 32-bit float XISF file, keeping keywords and properties. */
+function fsWriteImage( filePath, planes, width, height, source, historyLines )
+{
+   const channels = planes.length;
+   const image = new Image( width, height, channels, ( channels === 3 ) ? ColorSpace.RGB : ColorSpace.Gray, 32, PixelSampleType.Float );
+   try
+   {
+      planes.forEach( ( plane, c ) => image.setSamples( plane, new Rect( 0, 0, width, height ), c ) );
+      const format = new FileFormat( FS_OUTPUT_EXT, false/*toRead*/, true/*toWrite*/ );
+      if ( format.isNull )
+         throw new Error( "The XISF file format is not available." );
+      const instance = new FileFormatInstance( format );
+      if ( instance.isNull || !instance.create( filePath, FS_IO_HINTS ) )
+         throw new Error( "Error creating output file: " + filePath );
+      try
+      {
+         const description = new ImageDescription( source.description );
+         description.bitsPerSample = 32;
+         description.ieeefpSampleFormat = true;
+         if ( !instance.setOptions( description ) )
+            throw new Error( "Unable to set output file options: " + filePath );
+         instance.keywords = source.keywords.concat( historyLines.map( t => new FITSKeyword( "HISTORY", "", t ) ) );
+         source.properties.forEach( q => instance.writeImageProperty( q.id, q.value, q.type ) );
+         if ( !instance.writeImage( image ) )
+            throw new Error( "Error writing output file: " + filePath );
+      }
+      finally
+      {
+         instance.close();
+      }
+   }
+   finally
+   {
+      image.free();
+   }
+}
+
+/** Bayer pattern string ("RGGB"...) from the CFA property or BAYERPAT keyword; "" when none. */
+function fsCfaPattern( image )
+{
+   const prop = image.properties.filter( q => q.id === FS_CFA_PROPERTY )[ 0 ];
+   if ( prop )
+      return String( prop.value ).trim().toUpperCase();
+   const kw = image.keywords.filter( k => k.name.trim() === FS_BAYER_KEYWORD )[ 0 ];
+   return kw ? kw.strippedValue.trim().toUpperCase() : "";
+}
+
+/** CFA step (2 for a Bayer mosaic, 1 otherwise) for the chosen mode. */
+function fsCfaStep( image, mode )
+{
+   const pattern = fsCfaPattern( image );
+   if ( pattern.length > 4 )
+      throw new Error( "Only 2x2 (Bayer) CFA patterns are supported, not " + pattern );
+   if ( mode === "on" || ( mode === "auto" && image.planes.length === 1 && pattern.length === 4 ) )
+   {
+      if ( image.planes.length !== 1 )
+         throw new Error( "A CFA mosaic must have one channel; this image has " + image.planes.length );
+      return 2;
+   }
+   return 1;
+}
+
+function fsDefaultOutputPath( inputPath )
+{
+   return File.extractDrive( inputPath ) + File.extractDirectory( inputPath ) + "/" +
+          File.extractName( inputPath ) + FS_OUTPUT_SUFFIX + FS_OUTPUT_EXT;
+}
+
+function fsPhaseLabel( pattern, step, dx, dy )
+{
+   const colour = ( step === 2 && pattern.length === 4 ) ? pattern[ dx + 2 * dy ] + " " : "";
+   return colour + "(" + dx + "," + dy + ")";
+}
+
+/**
+ * Measures the flat and, when needed (or asked), smooths and writes it.
+ * @param {FsParameters} p
+ * @param {boolean} write  false only measures
+ * @returns {object} summary for the dialog / JSON report
+ */
+function fsRun( p, write )
+{
+   fsValidate( p );
+   console.writeln( "<end><cbr><br>* " + FS_TITLE + " " + FS_VERSION + ": " + p.inputPath );
+   const image = fsReadImage( p.inputPath );
+   const step = fsCfaStep( image, p.cfaMode );
+   const pattern = fsCfaPattern( image );
+   const phases = [];
+   image.planes.forEach( ( plane, c ) =>
+      fsAnalyzePlane( plane, image.width, image.height, step ).forEach( ph =>
+         phases.push( { channel: c, label: ( image.planes.length > 1 ? "C" + c + " " : "" ) + fsPhaseLabel( pattern, step, ph.dx, ph.dy ),
+                        mean: ph.mean, noise: ph.noise } ) ) );
+   const noise = Math.max.apply( null, phases.map( ph => ph.noise ) );
+   const target = p.targetPercent / 100;
+   const radius = p.autoRadius ? fsChooseRadius( noise, target, FS_SMOOTH_PASSES ) : p.fixedRadius;
+   const summary = {
+      tool: FS_TITLE, version: FS_VERSION, input: p.inputPath, width: image.width, height: image.height,
+      channels: image.planes.length, cfaStep: step, cfaPattern: pattern, phases: phases, noise: noise,
+      autoRadius: p.autoRadius, target: target, radius: radius,
+      residual: noise * fsNoiseFactor( radius, FS_SMOOTH_PASSES ), clipped: 0, output: "", written: false
+   };
+   phases.forEach( ph => console.writeln( format( "%s: level %.5f, pixel noise %.3f%%", ph.label, ph.mean, 100 * ph.noise ) ) );
+   console.writeln( format( "Radius %d (%s): pixel noise %.3f%% -> %.4f%%", radius, p.autoRadius ? "auto" : "fixed",
+                            100 * noise, 100 * summary.residual ) );
+   if ( !write || radius === 0 )
+      return summary;
+
+   const output = p.outputPath || fsDefaultOutputPath( p.inputPath );
+   if ( File.extractExtension( output ).toLowerCase() !== FS_OUTPUT_EXT )
+      throw new Error( "The output file must be .xisf: " + output );
+   if ( File.exists( output ) && output === p.inputPath )
+      throw new Error( "The output would overwrite the input: " + output );
+   const planes = image.planes.map( plane =>
+   {
+      const s = fsSmoothPlane( plane, image.width, image.height, step, radius, FS_SMOOTH_PASSES );
+      summary.clipped += s.clipped;
+      return s.plane;
+   } );
+   fsWriteImage( output, planes, image.width, image.height, image, [
+      format( "%s %s: smoothed per %s, %d box passes of radius %d", FS_TITLE, FS_VERSION,
+              step === 2 ? "CFA colour" : "channel", FS_SMOOTH_PASSES, radius ),
+      format( "%s: pixel noise %.3f%% -> %.4f%%, %d outliers replaced", FS_TITLE, 100 * noise, 100 * summary.residual, summary.clipped )
+   ] );
+   console.writeln( "Written: " + output + " (" + summary.clipped + " outliers replaced)" );
+   summary.output = output;
+   summary.written = true;
+   return summary;
+}
+
+/** HTML report of a summary in the current language. */
+function fsReportHtml( s )
+{
+   const layout = ( s.cfaStep === 2 ) ? fsMsg( "layoutCfa" ) : format( fsMsg( "layoutPlain" ), s.channels );
+   let html = format( fsMsg( "resultHeader" ), File.extractNameAndExtension( s.input ), s.width, s.height, layout );
+   html += "<p>" + s.phases.map( ph => format( fsMsg( "phaseLine" ), ph.label, ph.mean, 100 * ph.noise ) ).join( "<br>" ) + "</p>";
+   if ( s.radius === 0 )
+      html += format( fsMsg( "verdictQuiet" ), 100 * s.noise, 100 * s.target );
+   else if ( s.autoRadius )
+      html += format( fsMsg( "verdictNoisy" ), 100 * s.noise, s.radius, 100 * s.residual );
+   else
+      html += format( fsMsg( "verdictFixed" ), s.radius, 100 * s.noise, 100 * s.residual );
+   if ( s.written )
+      html += format( fsMsg( "written" ), String( s.clipped ), s.output ) + fsMsg( "useInWbpp" );
+   return html;
+}
+
+// ==== ApranatNR-WBPP-FlatSmooth.js ====
+// ----------------------------------------------------------------------------
+// ApranatNR-WBPP-FlatSmooth.js - runs FlatSmooth (../FlatSmooth) inside the
+// ApranatNR WBPP pipeline builder.
+//
+// For every master flat used by a light group, one "FlatSmooth" step is queued
+// after the flat pipeline and before the light calibration. It smooths the
+// master flat into <output>/flatsmooth/<name>_smooth.xisf (a quiet flat is left
+// alone in automatic mode). The light calibration steps that use that flat are
+// wrapped so that, while each one runs, the flat group's master file points to
+// the smoothed copy; the original path is restored right after, even on an
+// error, so the WBPP file list and its saved settings never change.
+// The pure helpers at the top are unit tested in Node; the rest needs the WBPP
+// runtime and FlatSmooth-Core.js / FlatSmooth-Engine.js (bundled in the builder).
+// ----------------------------------------------------------------------------
+
+const ANR_WBPP_FS_SUBDIR = "flatsmooth";
+const ANR_WBPP_FS_STEP_NAME = "FlatSmooth";
+const ANR_WBPP_FS_MAX_RADIUS = 32;   // must match FS_MAX_RADIUS in FlatSmooth-Core.js
+
+// ---------------------------------------------------------------------------
+// Pure helpers
+// ---------------------------------------------------------------------------
+
+/** FlatSmooth CFA mode ("on" / "off") for a flat group, from the shared cfaMode setting. */
+function anrWbppFlatSmoothCfa( cfaMode, isCFA )
+{
+   if ( cfaMode === "bayer" )
+      return "on";
+   if ( cfaMode === "mono" )
+      return "off";
+   return isCFA ? "on" : "off";
+}
+
+/** Output path of the smoothed copy of a master flat. */
+function anrWbppFlatSmoothOutputPath( outputDir, masterPath )
+{
+   const slash = Math.max( masterPath.lastIndexOf( "/" ), masterPath.lastIndexOf( "\\" ) );
+   const fileName = masterPath.substring( slash + 1 );
+   const dot = fileName.lastIndexOf( "." );
+   const name = ( dot > 0 ) ? fileName.substring( 0, dot ) : fileName;
+   return outputDir + "/" + name + "_smooth.xisf";
+}
+
+/**
+ * Field values for FsParameters (FlatSmooth-Engine.js) of one master flat.
+ */
+function anrWbppFlatSmoothFields( settings, masterPath, outputDir, isCFA )
+{
+   const isAuto = settings.flatSmoothRadius === 0;
+   return {
+      inputPath: masterPath,
+      outputPath: anrWbppFlatSmoothOutputPath( outputDir, masterPath ),
+      cfaMode: anrWbppFlatSmoothCfa( settings.cfaMode, isCFA ),
+      autoRadius: isAuto,
+      targetPercent: settings.flatSmoothTargetPercent,
+      fixedRadius: isAuto ? 1 : settings.flatSmoothRadius,
+      openResult: false
+   };
+}
+
+/**
+ * The distinct flat groups used by the given light groups, in order.
+ * @param {Array} lightGroups
+ * @param {(group: any) => any} flatGroupOf the flat group a light group is calibrated with, or null
+ */
+function anrWbppFlatGroupsFor( lightGroups, flatGroupOf )
+{
+   const result = [];
+   lightGroups.forEach( g =>
+   {
+      const flat = flatGroupOf( g );
+      if ( flat != null && result.indexOf( flat ) < 0 )
+         result.push( flat );
+   } );
+   return result;
+}
+
+/**
+ * Runs fn() while fileItem.filePath is `path`, then restores the original
+ * path, also when fn() throws. WBPP reads the master flat path from the flat
+ * group's first file item while it calibrates, and offers no other way to
+ * give it a different flat for one run.
+ */
+function anrWbppWithFilePath( fileItem, path, fn )
+{
+   const original = fileItem.filePath;
+   fileItem.filePath = path;
+   try
+   {
+      return fn();
+   }
+   finally
+   {
+      fileItem.filePath = original;
+   }
+}
+
+// ---------------------------------------------------------------------------
+// WBPP runtime glue (needs the WBPP globals and FlatSmooth-Engine.js)
+// ---------------------------------------------------------------------------
+
+function anrWbppFlatSmoothCheckConstants()
+{
+   if ( ANR_WBPP_FS_MAX_RADIUS !== FS_MAX_RADIUS )
+      throw new Error( "ApranatNR: internal constant mismatch between ApranatNR-WBPP-FlatSmooth.js and FlatSmooth-Core.js" );
+}
+
+/** The flat group WBPP calibrates a light group with, or null (none, or flat disabled). */
+function anrWbppFlatGroupOf( engine, lightGroup )
+{
+   if ( lightGroup.forceNoFlat )
+      return null;
+   const cg = engine.calibrationMatcher.getCalibrationGroupsFor( lightGroup );
+   return ( cg && cg.masterFlat ) ? cg.masterFlat : null;
+}
+
+function anrWbppMasterItem( flatGroup )
+{
+   const item = flatGroup.hasMaster ? flatGroup.fileItems[ 0 ] : undefined;
+   return ( item && item.isMaster && typeof item.filePath === "string" && item.filePath.length > 0 ) ? item : null;
+}
+
+function anrWbppRunFlatSmooth( engine, flatGroup, settings, smoothed, op, requestInterruption )
+{
+   const item = anrWbppMasterItem( flatGroup );
+   if ( item === null )
+   {
+      // WBPP itself stops the calibration of the lights that need a missing master
+      anrWbppWarn( engine, op, "FlatSmooth skipped: the master flat of this group is not available." );
+      op.statusMessage = "no master flat";
+      return OperationBlockStatus.CANCELED;
+   }
+   try
+   {
+      const outputDir = anrEnsureDirectory( engine.outputDirectory + "/" + ANR_WBPP_FS_SUBDIR );
+      const p = Object.assign( new FsParameters, anrWbppFlatSmoothFields( settings, item.filePath, outputDir, flatGroup.isCFA ) );
+      if ( p.outputPath !== p.inputPath && File.exists( p.outputPath ) )
+         File.remove( p.outputPath );   // never calibrate with the copy of a previous run
+      const s = fsRun( p, true );
+      if ( !s.written )
+      {
+         op.statusMessage = format( "quiet flat (%.3f%%), not changed", 100 * s.noise );
+         engine.processLogger.addSuccess( ANR_WBPP_FS_STEP_NAME, op.statusMessage + ": " + item.filePath );
+         return OperationBlockStatus.DONE;
+      }
+      smoothed.set( flatGroup, s.output );
+      op.statusMessage = format( "radius %d, pixel noise %.3f%% -> %.4f%%", s.radius, 100 * s.noise, 100 * s.residual );
+      engine.processLogger.addSuccess( ANR_WBPP_FS_STEP_NAME, op.statusMessage + " -> " + s.output );
+      return OperationBlockStatus.DONE;
+   }
+   catch ( x )
+   {
+      // calibrating with the unsmoothed flat would give a result the user did not ask for
+      const message = "FlatSmooth failed on " + item.filePath + ": " + ( ( x instanceof Error ) ? x.message : String( x ) );
+      console.criticalln( "<end><cbr>*** Error: " + message );
+      engine.processLogger.addError( message );
+      op.statusMessage = "failed";
+      requestInterruption();
+      return OperationBlockStatus.FAILED;
+   }
+}
+
+/** Makes a light calibration step use the smoothed master flat while it runs. */
+function anrWbppUseSmoothedFlat( engine, calibration, smoothed )
+{
+   const run = calibration._run;
+   calibration._run = ( env, requestInterruption ) =>
+   {
+      const flatGroup = anrWbppFlatGroupOf( engine, calibration.group );
+      const path = flatGroup ? smoothed.get( flatGroup ) : undefined;
+      const item = flatGroup ? anrWbppMasterItem( flatGroup ) : null;
+      if ( path === undefined || item === null )
+         return run( env, requestInterruption );
+      console.noteln( "<end><cbr>* FlatSmooth: calibrating with <raw>" + path + "</raw>" );
+      return anrWbppWithFilePath( item, path, () => run( env, requestInterruption ) );
+   };
+}
+
+/**
+ * The FlatSmooth steps to queue before the light calibration, and the
+ * wrapping of the light calibration entries. Returns [] when disabled.
+ * @param {Array} lightEntries queue entries of the light pipeline
+ * @param {(entry: any) => any} calibratedGroupOf the light group an entry calibrates, or null
+ */
+function anrWbppFlatSmoothEntries( engine, settings, lightEntries, calibratedGroupOf )
+{
+   if ( !settings.flatSmoothEnabled )
+      return [];
+   anrWbppFlatSmoothCheckConstants();
+   const lightGroups = engine.groupsManager.groupsForMode( BPP.GroupingMode.PRE ).filter( g => g.imageType == ImageType.Light );
+   const flats = anrWbppFlatGroupsFor( lightGroups, g => anrWbppFlatGroupOf( engine, g ) );
+   if ( flats.length === 0 )
+      return [];
+   const smoothed = new Map();   // flat group -> smoothed master path, filled at run time
+   lightEntries.filter( e => calibratedGroupOf( e ) != null )
+               .forEach( e => anrWbppUseSmoothedFlat( engine, e.operation, smoothed ) );
+   return flats.map( flat => anrWbppEntry( anrWbppOperation( ANR_WBPP_FS_STEP_NAME, flat,
+      ( op, requestInterruption ) => anrWbppRunFlatSmooth( engine, flat, settings, smoothed, op, requestInterruption ) ) ) );
+}
+
+if ( typeof module !== "undefined" && module.exports )
+   module.exports = {
+      ANR_WBPP_FS_MAX_RADIUS,
+      anrWbppFlatSmoothCfa,
+      anrWbppFlatSmoothOutputPath,
+      anrWbppFlatSmoothFields,
+      anrWbppFlatGroupsFor,
+      anrWbppWithFilePath
+   };
+
 // ==== ApranatNR-WBPP.js ====
 // ----------------------------------------------------------------------------
 // ApranatNR-WBPP.js - runs ApranatNR inside WBPP as a pipeline builder.
 //
 // WBPP (3.2+) lets a "pipeline builder" script assemble the light pipeline.
 // This module builds the standard WBPP light pipeline and inserts:
+//   - optionally, one "FlatSmooth" step per master flat used by the lights,
+//     before the light calibration (see ApranatNR-WBPP-FlatSmooth.js)
 //   - one "ApranatNR" step per light group, right after its calibration
 //     (before cosmetic correction / debayering): RTN pixel mapping + cool file
 //   - optionally, after the integration, one "ApranatNR Cosmicut" step per
@@ -1339,7 +2040,10 @@ const ANR_WBPP_DEFAULT_SETTINGS = Object.freeze( {
    coolProtectStructures: true,
    cfaMode: "auto",
    cosmicutEnabled: false,
-   cosmicutExcludeZero: true
+   cosmicutExcludeZero: true,
+   flatSmoothEnabled: true,
+   flatSmoothRadius: 0,
+   flatSmoothTargetPercent: 0.3
 } );
 
 const ANR_WBPP_SETTINGS_SCHEMA = Object.freeze( {
@@ -1353,7 +2057,10 @@ const ANR_WBPP_SETTINGS_SCHEMA = Object.freeze( {
    coolProtectStructures: { type: "boolean" },
    cfaMode: { type: "string", values: Object.keys( ANR_WBPP_CFA_MODES ) },
    cosmicutEnabled: { type: "boolean" },
-   cosmicutExcludeZero: { type: "boolean" }
+   cosmicutExcludeZero: { type: "boolean" },
+   flatSmoothEnabled: { type: "boolean" },
+   flatSmoothRadius: { type: "number", min: 0, max: 32, integer: true },   // 0 = automatic
+   flatSmoothTargetPercent: { type: "number", min: 0.01, max: 10 }
 } );
 
 // ---------------------------------------------------------------------------
@@ -1366,6 +2073,8 @@ function anrWbppCheckValue( key, value, rule )
       return "\"" + key + "\" must be a " + rule.type;
    if ( rule.type === "number" && !( Number.isFinite( value ) && value >= rule.min && value <= rule.max ) )
       return "\"" + key + "\" must be between " + rule.min + " and " + rule.max;
+   if ( rule.integer && !Number.isInteger( value ) )
+      return "\"" + key + "\" must be a whole number";
    if ( rule.values && rule.values.indexOf( value ) < 0 )
       return "\"" + key + "\" must be one of " + rule.values.map( v => "\"" + v + "\"" ).join( ", " );
    return null;
@@ -1663,8 +2372,10 @@ function anrWbppAddSteps( engine, settings, start )
    const calibratedGroupOf = e =>
       ( e.operation instanceof engine.calibrationOperation && e.operation.group && e.operation.group.imageType == ImageType.Light )
          ? e.operation.group : null;
-   const entries = anrWbppInsertAfterCalibration( queue.operations, start, calibratedGroupOf, additions )
-      .concat( anrWbppCosmicutEntries( engine, settings ) );
+   const withAnr = anrWbppInsertAfterCalibration( queue.operations, start, calibratedGroupOf, additions );
+   // FlatSmooth runs after all master flats exist and before any light calibration
+   const flatSmooth = anrWbppFlatSmoothEntries( engine, settings, withAnr.slice( start ), calibratedGroupOf );
+   const entries = withAnr.slice( 0, start ).concat( flatSmooth, withAnr.slice( start ), anrWbppCosmicutEntries( engine, settings ) );
    anrWbppReplaceQueue( queue, entries );
 }
 

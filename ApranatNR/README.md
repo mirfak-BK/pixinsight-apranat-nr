@@ -18,7 +18,7 @@ A PixInsight script for preprocessing noise countermeasures devised by apranat (
 ## Use
 
 - **Standalone**: run `ApranatNR.js` (Script > Execute Script File...). Tab ① corrects calibrated, undebayered lights; tab ② makes a Cosmicut master from registered frames.
-- **Inside WBPP**: in WBPP's Pipeline tab, enable "Pipeline builder" and select `ApranatNR-WBPP-Builder.js`. The ApranatNR step runs right after calibration. Options are in `ApranatNR-WBPP-Settings.json` next to it.
+- **Inside WBPP**: in WBPP's Pipeline tab, enable "Pipeline builder" and select `ApranatNR-WBPP-Builder.js`. The ApranatNR step runs right after calibration. Options are in `ApranatNR-WBPP-Settings.json` next to it. The builder also runs [FlatSmooth](../FlatSmooth/README.md) on every master flat the lights use, before the light calibration (`flatSmooth*` options; a quiet flat is left alone).
 - The dialog is in English by default; choose "日本語" under "Language" to switch to Japanese.
 
 Full documentation: [ApranatNR-Guide-en.html](ApranatNR-Guide-en.html) (English), [ApranatNR-Guide.html](ApranatNR-Guide.html) (Japanese).

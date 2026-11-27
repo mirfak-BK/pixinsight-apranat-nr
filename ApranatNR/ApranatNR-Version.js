@@ -6,4 +6,4 @@
 // ----------------------------------------------------------------------------
 
 const ANR_TITLE = "ApranatNR";
-const ANR_VERSION = "1.6.0";
+const ANR_VERSION = "1.7.0";
