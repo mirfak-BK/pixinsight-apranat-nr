@@ -21,7 +21,7 @@ A PixInsight script for preprocessing noise countermeasures devised by apranat (
 - **Inside WBPP**: in WBPP's Pipeline tab, enable "Pipeline builder" and select `ApranatNR-WBPP-Builder.js`. The ApranatNR step runs right after calibration. Options are in `ApranatNR-WBPP-Settings.json` next to it. The builder also runs [FlatSmooth](../FlatSmooth/README.md) on every master flat the lights use, before the light calibration (`flatSmooth*` options; a quiet flat is left alone).
 - The dialog is in English by default; choose "日本語" under "Language" to switch to Japanese.
 
-Full documentation: [ApranatNR-Guide-en.html](ApranatNR-Guide-en.html) (English), [ApranatNR-Guide.html](ApranatNR-Guide.html) (Japanese).
+Full documentation: [ApranatNR-Guide-en.html](https://mirfak-bk.github.io/pixinsight-apranat-nr/ApranatNR/ApranatNR-Guide-en.html) (English), [ApranatNR-Guide.html](https://mirfak-bk.github.io/pixinsight-apranat-nr/ApranatNR/ApranatNR-Guide.html) (Japanese).
 
 ## Highlights
 
@@ -31,7 +31,7 @@ Full documentation: [ApranatNR-Guide-en.html](ApranatNR-Guide-en.html) (English)
 
 ## How it measures
 
-How drunk pixels, cool pixels and star protection are measured: [Noise measurement guide](../docs/NoiseMeasurement-Guide-en.html) ([日本語](../docs/NoiseMeasurement-Guide.html)).
+How drunk pixels, cool pixels and star protection are measured: [Noise measurement guide](https://mirfak-bk.github.io/pixinsight-apranat-nr/docs/NoiseMeasurement-Guide-en.html) ([日本語](https://mirfak-bk.github.io/pixinsight-apranat-nr/docs/NoiseMeasurement-Guide.html)).
 
 ## Tests
 

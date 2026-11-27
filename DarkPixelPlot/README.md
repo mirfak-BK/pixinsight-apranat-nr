@@ -25,7 +25,7 @@ PixInsight -n --automation-mode --force-exit -r="DarkPixelPlot.js,--out=<png>[,-
 
 ## How it measures
 
-What the plot axes and the typical-fluctuation curve mean: [Noise measurement guide](../docs/NoiseMeasurement-Guide-en.html#dark) ([日本語](../docs/NoiseMeasurement-Guide.html#dark)).
+What the plot axes and the typical-fluctuation curve mean: [Noise measurement guide](https://mirfak-bk.github.io/pixinsight-apranat-nr/docs/NoiseMeasurement-Guide-en.html#dark) ([日本語](https://mirfak-bk.github.io/pixinsight-apranat-nr/docs/NoiseMeasurement-Guide.html#dark)).
 
 ## Tests
 

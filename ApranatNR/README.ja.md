@@ -21,7 +21,7 @@
 - **WBPP に組み込む**：WBPP の Pipeline タブで「Pipeline builder」を有効にし、`ApranatNR-WBPP-Builder.js` を選びます。キャリブレーションの直後に ApranatNR の工程が入ります。設定は同じフォルダの `ApranatNR-WBPP-Settings.json` です。ライトの較正の前に、ライトが使うマスターフラットへ [FlatSmooth](../FlatSmooth/README.ja.md) もかけます（`flatSmooth*` の設定。ノイズの少ないフラットはそのまま使います）。
 - 画面は最初は英語です。画面下の「Language」で「日本語」を選ぶと切り替わり、次回からも日本語で開きます。
 
-詳しい説明：[ApranatNR-Guide.html](ApranatNR-Guide.html)（日本語）、[ApranatNR-Guide-en.html](ApranatNR-Guide-en.html)（英語）
+詳しい説明：[ApranatNR-Guide.html](https://mirfak-bk.github.io/pixinsight-apranat-nr/ApranatNR/ApranatNR-Guide.html)（日本語）、[ApranatNR-Guide-en.html](https://mirfak-bk.github.io/pixinsight-apranat-nr/ApranatNR/ApranatNR-Guide-en.html)（英語）
 
 ## 特長
 
@@ -31,7 +31,7 @@
 
 ## 計測の仕組み
 
-酩酊ピクセル・クールピクセル・星の保護の計測方法は [ノイズ計測の解説](../docs/NoiseMeasurement-Guide.html)（[English](../docs/NoiseMeasurement-Guide-en.html)）にあります。
+酩酊ピクセル・クールピクセル・星の保護の計測方法は [ノイズ計測の解説](https://mirfak-bk.github.io/pixinsight-apranat-nr/docs/NoiseMeasurement-Guide.html)（[English](https://mirfak-bk.github.io/pixinsight-apranat-nr/docs/NoiseMeasurement-Guide-en.html)）にあります。
 
 ## テスト
 

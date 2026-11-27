@@ -22,12 +22,12 @@
 1. このリポジトリをダウンロード（Code > Download ZIP）するか、clone します。
 2. PixInsight のメニュー **Script > Execute Script File...** で実行します（`ApranatNR/ApranatNR.js`、`DarkPixelPlot/DarkPixelPlot.js`、`FlatSmooth/FlatSmooth.js`）。
 3. メニューから起動したい場合は、**Script > Feature Scripts...** でこのフォルダを登録します。ApranatNR は Script > Preprocessing に、DarkPixelPlot と FlatSmooth は Script > Utilities に入ります。
-4. WBPP に組み込む場合は、WBPP の Pipeline builder に `ApranatNR/ApranatNR-WBPP-Builder.js` を指定します（[ApranatNR の説明書](ApranatNR/ApranatNR-Guide.html)を参照）。
+4. WBPP に組み込む場合は、WBPP の Pipeline builder に `ApranatNR/ApranatNR-WBPP-Builder.js` を指定します（[ApranatNR の説明書](https://mirfak-bk.github.io/pixinsight-apranat-nr/ApranatNR/ApranatNR-Guide.html)を参照）。
 
 ## 説明書
 
-- ApranatNR の説明書：[日本語](ApranatNR/ApranatNR-Guide.html)、[英語](ApranatNR/ApranatNR-Guide-en.html)（ダウンロードしてブラウザで開いてください）
-- ノイズ計測の解説（3つのツールがノイズをどう測るか、検証で仕上がりをどう比べたか）：[日本語](docs/NoiseMeasurement-Guide.html)、[英語](docs/NoiseMeasurement-Guide-en.html)
+- ApranatNR の説明書：[日本語](https://mirfak-bk.github.io/pixinsight-apranat-nr/ApranatNR/ApranatNR-Guide.html)、[英語](https://mirfak-bk.github.io/pixinsight-apranat-nr/ApranatNR/ApranatNR-Guide-en.html)
+- ノイズ計測の解説（3つのツールがノイズをどう測るか、検証で仕上がりをどう比べたか）：[日本語](https://mirfak-bk.github.io/pixinsight-apranat-nr/docs/NoiseMeasurement-Guide.html)、[英語](https://mirfak-bk.github.io/pixinsight-apranat-nr/docs/NoiseMeasurement-Guide-en.html)
 - [ApranatNR の README](ApranatNR/README.ja.md)、[DarkPixelPlot の README](DarkPixelPlot/README.ja.md)、[FlatSmooth の README](FlatSmooth/README.ja.md)
 
 ## テスト

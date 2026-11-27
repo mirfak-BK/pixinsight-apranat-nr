@@ -31,7 +31,7 @@ PixInsight -n --automation-mode --force-exit -r="FlatSmooth.js,--out=<xisf>[,--t
 
 ## 計測の仕組み
 
-画素ノイズと自動半径の計算方法、フラットのノイズが縮緬ノイズになる理由は [ノイズ計測の解説](../docs/NoiseMeasurement-Guide.html#flat)（[English](../docs/NoiseMeasurement-Guide-en.html#flat)）にあります。
+画素ノイズと自動半径の計算方法、フラットのノイズが縮緬ノイズになる理由は [ノイズ計測の解説](https://mirfak-bk.github.io/pixinsight-apranat-nr/docs/NoiseMeasurement-Guide.html#flat)（[English](https://mirfak-bk.github.io/pixinsight-apranat-nr/docs/NoiseMeasurement-Guide-en.html#flat)）にあります。
 
 ## テスト
 

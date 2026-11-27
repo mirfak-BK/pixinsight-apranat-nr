@@ -31,7 +31,7 @@ A JSON summary goes to `<out>.json`, errors to `<out>.error.txt`. `tests/run-hea
 
 ## How it measures
 
-How the pixel noise and the automatic radius are computed, and why flat noise causes walking noise: [Noise measurement guide](../docs/NoiseMeasurement-Guide-en.html#flat) ([日本語](../docs/NoiseMeasurement-Guide.html#flat)).
+How the pixel noise and the automatic radius are computed, and why flat noise causes walking noise: [Noise measurement guide](https://mirfak-bk.github.io/pixinsight-apranat-nr/docs/NoiseMeasurement-Guide-en.html#flat) ([日本語](https://mirfak-bk.github.io/pixinsight-apranat-nr/docs/NoiseMeasurement-Guide.html#flat)).
 
 ## Tests
 

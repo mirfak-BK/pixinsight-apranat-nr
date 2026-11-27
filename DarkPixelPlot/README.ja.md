@@ -25,7 +25,7 @@ PixInsight -n --automation-mode --force-exit -r="DarkPixelPlot.js,--out=<png>[,-
 
 ## 計測の仕組み
 
-グラフの軸と典型的な揺れの曲線の意味は [ノイズ計測の解説](../docs/NoiseMeasurement-Guide.html#dark)（[English](../docs/NoiseMeasurement-Guide-en.html#dark)）にあります。
+グラフの軸と典型的な揺れの曲線の意味は [ノイズ計測の解説](https://mirfak-bk.github.io/pixinsight-apranat-nr/docs/NoiseMeasurement-Guide.html#dark)（[English](https://mirfak-bk.github.io/pixinsight-apranat-nr/docs/NoiseMeasurement-Guide-en.html#dark)）にあります。
 
 ## テスト
 
