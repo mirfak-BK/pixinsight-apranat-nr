@@ -27,6 +27,7 @@
 ## 説明書
 
 - ApranatNR の説明書：[日本語](ApranatNR/ApranatNR-Guide.html)、[英語](ApranatNR/ApranatNR-Guide-en.html)（ダウンロードしてブラウザで開いてください）
+- ノイズ計測の解説（3つのツールがノイズをどう測るか、検証で仕上がりをどう比べたか）：[日本語](docs/NoiseMeasurement-Guide.html)、[英語](docs/NoiseMeasurement-Guide-en.html)
 - [ApranatNR の README](ApranatNR/README.ja.md)、[DarkPixelPlot の README](DarkPixelPlot/README.ja.md)、[FlatSmooth の README](FlatSmooth/README.ja.md)
 
 ## テスト

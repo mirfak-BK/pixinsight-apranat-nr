@@ -29,6 +29,10 @@ PixInsight -n --automation-mode --force-exit -r="FlatSmooth.js,--out=<xisf>[,--t
 
 A JSON summary goes to `<out>.json`, errors to `<out>.error.txt`. `tests/run-headless.sh <master flat> <out.xisf> [options]` wraps this.
 
+## How it measures
+
+How the pixel noise and the automatic radius are computed, and why flat noise causes walking noise: [Noise measurement guide](../docs/NoiseMeasurement-Guide-en.html#flat) ([日本語](../docs/NoiseMeasurement-Guide.html#flat)).
+
 ## Tests
 
 ```bash

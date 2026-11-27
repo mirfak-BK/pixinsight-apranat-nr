@@ -29,6 +29,10 @@ PixInsight -n --automation-mode --force-exit -r="FlatSmooth.js,--out=<xisf>[,--t
 
 結果の要約は `<out>.json`、エラーは `<out>.error.txt` に書き出します。`tests/run-headless.sh <マスターフラット> <out.xisf> [オプション]` で同じことができます。
 
+## 計測の仕組み
+
+画素ノイズと自動半径の計算方法、フラットのノイズが縮緬ノイズになる理由は [ノイズ計測の解説](../docs/NoiseMeasurement-Guide.html#flat)（[English](../docs/NoiseMeasurement-Guide-en.html#flat)）にあります。
+
 ## テスト
 
 ```bash

@@ -23,6 +23,10 @@ PixInsight -n --automation-mode --force-exit -r="DarkPixelPlot.js,--out=<png>[,-
 
 `tests/run-headless.sh <dark folder> <file name regex> <out.png> [map] [extra options]` wraps this; errors are written to `<out>.png.error.txt`.
 
+## How it measures
+
+What the plot axes and the typical-fluctuation curve mean: [Noise measurement guide](../docs/NoiseMeasurement-Guide-en.html#dark) ([日本語](../docs/NoiseMeasurement-Guide.html#dark)).
+
 ## Tests
 
 ```bash

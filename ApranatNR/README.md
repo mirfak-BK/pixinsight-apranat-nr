@@ -29,6 +29,10 @@ Full documentation: [ApranatNR-Guide-en.html](ApranatNR-Guide-en.html) (English)
 - Structure protection: no repair where the replacement would change a pixel by more than 5σ, or where the unregistered stack of the uncorrected lights shows a star (own excess above 5σ, or a 3σ footprint on the adjacent pixels). Faint stars on defect pixels are not dimmed in undithered data.
 - Tested on ZWO ASI533MC Pro data: background noise −1.2% to −1.7% compared with WBPP alone, with no loss of star flux (see section 9 of the guide).
 
+## How it measures
+
+How drunk pixels, cool pixels and star protection are measured: [Noise measurement guide](../docs/NoiseMeasurement-Guide-en.html) ([日本語](../docs/NoiseMeasurement-Guide.html)).
+
 ## Tests
 
 ```bash

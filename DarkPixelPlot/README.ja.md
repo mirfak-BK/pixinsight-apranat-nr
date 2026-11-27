@@ -23,6 +23,10 @@ PixInsight -n --automation-mode --force-exit -r="DarkPixelPlot.js,--out=<png>[,-
 
 `tests/run-headless.sh <ダークのフォルダ> <ファイル名の正規表現> <出力.png> [欠陥マップ] [追加オプション]` でも実行できます。エラーは `<出力>.png.error.txt` に書き出します。
 
+## 計測の仕組み
+
+グラフの軸と典型的な揺れの曲線の意味は [ノイズ計測の解説](../docs/NoiseMeasurement-Guide.html#dark)（[English](../docs/NoiseMeasurement-Guide-en.html#dark)）にあります。
+
 ## テスト
 
 ```bash

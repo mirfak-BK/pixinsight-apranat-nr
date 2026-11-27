@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Noise Measurement Guide</title>
+<style>
+:root {
+  --bg: #fbfaf7;
+  --surface: #ffffff;
+  --fg: #1f2328;
+  --muted: #5d6670;
+  --border: #e2ded6;
+  --accent: #2f5d8a;
+  --accent-soft: #e8eff7;
+  --highlight: #fff4d6;
+  --highlight-border: #e3c46b;
+  --note-bg: #eef5ee;
+  --note-border: #6aa06f;
+  --warn-bg: #fdf0ec;
+  --warn-border: #d4805f;
+  --code-bg: #f3f1ec;
+  --shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171a;
+    --surface: #1d2024;
+    --fg: #e6e6e3;
+    --muted: #a3a9b0;
+    --border: #33373d;
+    --accent: #8fb6de;
+    --accent-soft: #23303d;
+    --highlight: #3a3220;
+    --highlight-border: #a88d3f;
+    --note-bg: #1e2a20;
+    --note-border: #5f9465;
+    --warn-bg: #2f221d;
+    --warn-border: #b8704f;
+    --code-bg: #26292e;
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15171a;
+  --surface: #1d2024;
+  --fg: #e6e6e3;
+  --muted: #a3a9b0;
+  --border: #33373d;
+  --accent: #8fb6de;
+  --accent-soft: #23303d;
+  --highlight: #3a3220;
+  --highlight-border: #a88d3f;
+  --note-bg: #1e2a20;
+  --note-border: #5f9465;
+  --warn-bg: #2f221d;
+  --warn-border: #b8704f;
+  --code-bg: #26292e;
+  --shadow: none;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+  -webkit-text-size-adjust: 100%;
+}
+a { color: var(--accent); }
+code, pre, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .88em; }
+code { background: var(--code-bg); padding: .1em .35em; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; line-height: 1.55; }
+pre code { background: none; padding: 0; overflow-wrap: normal; }
+.layout { max-width: 1120px; margin: 0 auto; padding: 0 16px; display: grid; grid-template-columns: 1fr; gap: 32px; }
+header.top { max-width: 1120px; margin: 0 auto; padding: 40px 16px 8px; }
+header.top h1 { font-size: 2rem; line-height: 1.3; margin: 0 0 6px; letter-spacing: .01em; }
+header.top .lead { color: var(--muted); margin: 0; }
+.badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.badge { font-size: .8rem; border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 2px 10px; color: var(--muted); }
+nav.toc { font-size: .92rem; }
+nav.toc .toc-inner { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; box-shadow: var(--shadow); }
+nav.toc h2 { font-size: .85rem; color: var(--muted); margin: 0 0 6px; letter-spacing: .05em; }
+nav.toc ol { margin: 0; padding-left: 1.3em; }
+nav.toc li { margin: 2px 0; }
+nav.toc a { text-decoration: none; }
+nav.toc a:hover { text-decoration: underline; }
+main { min-width: 0; padding-bottom: 64px; }
+section { margin: 0 0 44px; scroll-margin-top: 16px; }
+h2 { font-size: 1.45rem; line-height: 1.4; margin: 0 0 14px; padding-bottom: 6px; border-bottom: 2px solid var(--border); }
+h3 { font-size: 1.12rem; margin: 26px 0 8px; }
+p { margin: 0 0 12px; }
+ul, ol { margin: 0 0 12px; padding-left: 1.4em; }
+li { margin: 3px 0; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; box-shadow: var(--shadow); margin: 0 0 14px; }
+.methods { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 14px; }
+.methods .card { margin: 0; }
+.methods h3 { margin-top: 0; }
+.tag { display: inline-block; font-size: .75rem; padding: 0 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); margin-left: 6px; vertical-align: 2px; }
+.callout { border-left: 4px solid var(--note-border); background: var(--note-bg); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 0 0 14px; }
+.callout.warn { border-left-color: var(--warn-border); background: var(--warn-bg); }
+.callout p:last-child, .callout ul:last-child { margin-bottom: 0; }
+.table-wrap { overflow-x: auto; margin: 0 0 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { background: var(--code-bg); font-weight: 600; white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+td.num { white-space: nowrap; font-variant-numeric: tabular-nums; }
+td:first-child { white-space: nowrap; }
+td:first-child code { overflow-wrap: normal; }
+td:last-child { min-width: 14em; }
+.flow { list-style: none; padding: 0; margin: 0 0 14px; display: flex; flex-direction: column; gap: 0; }
+.flow li { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; margin: 0 0 22px; }
+.flow li:not(:last-child)::after { content: "↓"; position: absolute; left: 50%; bottom: -21px; transform: translateX(-50%); color: var(--muted); font-size: .95rem; line-height: 1; }
+.flow li.hl { background: var(--highlight); border-color: var(--highlight-border); }
+.flow li.opt { border-style: dashed; }
+.flow .who { font-size: .78rem; color: var(--muted); margin-left: 6px; }
+.steps { counter-reset: s; list-style: none; padding: 0; }
+.steps > li { counter-increment: s; position: relative; padding-left: 2.3em; margin: 0 0 10px; }
+.steps > li::before { content: counter(s); position: absolute; left: 0; top: .15em; width: 1.6em; height: 1.6em; border-radius: 50%; background: var(--accent); color: var(--surface); font-size: .85em; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+dl.faq dt { font-weight: 700; margin-top: 14px; }
+dl.faq dd { margin: 4px 0 0; }
+footer { color: var(--muted); font-size: .85rem; border-top: 1px solid var(--border); padding: 16px 0 40px; }
+@media (min-width: 900px) {
+  .layout { grid-template-columns: 240px minmax(0, 1fr); }
+  nav.toc .toc-inner { position: sticky; top: 16px; }
+  nav.toc { align-self: start; position: sticky; top: 16px; }
+  .methods { grid-template-columns: repeat(3, 1fr); }
+  header.top h1 { font-size: 2.3rem; }
+}
+@media print {
+  nav.toc { display: none; }
+  .layout { grid-template-columns: 1fr; }
+}
+figure { margin: 0 0 14px; }
+figcaption { color: var(--muted); font-size: .88rem; margin-top: 8px; line-height: 1.6; }
+.fig { width: 100%; height: auto; display: block; }
+.fig .plot-bg { fill: var(--bg); stroke: none; }
+.fig .legend-bg { fill: var(--surface); stroke: var(--border); }
+.fig .axis { stroke: var(--muted); stroke-width: 1; }
+.fig .tick { fill: var(--muted); font-size: 11px; }
+.fig .lab, .fig .lg { fill: var(--fg); font-size: 12px; }
+.fig .d-normal { fill: var(--muted); opacity: .45; }
+.fig .d-warm { fill: var(--accent); opacity: .8; }
+.fig .d-rtn { fill: var(--warn-border); }
+.fig polyline, .fig line[class^="c-"] { fill: none; stroke-width: 2; }
+.fig .c-model { stroke: var(--accent); }
+.fig .c-thr { stroke: var(--warn-border); stroke-dasharray: 6 4; }
+.fig .c-random { stroke: var(--muted); stroke-dasharray: 4 4; }
+.fig .c-raw { stroke: var(--warn-border); }
+.fig .c-smooth { stroke: var(--note-border); }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Noise Measurement Guide</h1>
+  <p class="lead">Which noise ApranatNR, DarkPixelPlot and FlatSmooth measure, how they measure it, and how they decide. It also covers how the results were compared during testing.</p>
+  <div class="badges">
+    <span class="badge">ApranatNR 1.7.0</span>
+    <span class="badge">DarkPixelPlot 1.2.0</span>
+    <span class="badge">FlatSmooth 1.0.0</span>
+    <a class="badge" href="NoiseMeasurement-Guide.html">日本語</a>
+  </div>
+</header>
+
+<div class="layout">
+<nav class="toc"><div class="toc-inner">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#overview">What is measured</a></li>
+    <li><a href="#tools">Common tools</a></li>
+    <li><a href="#dark">Dark fluctuation (drunk pixels)</a></li>
+    <li><a href="#frame">Scatter in one light (star protection)</a></li>
+    <li><a href="#cool">The stacked image (cool file)</a></li>
+    <li><a href="#flat">Pixel noise of the master flat</a></li>
+    <li><a href="#compare">Comparing results</a></li>
+    <li><a href="#pitfalls">Reading the numbers</a></li>
+  </ol>
+</div></nav>
+
+<main>
+
+<section id="overview">
+  <h2>1. What is measured</h2>
+  <p>The three tools use the same word, "noise", for four different things. Each one builds a reference for how much a normal pixel should vary, then looks for pixels or amounts that fall outside it.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Quantity</th><th>Direction of the scatter</th><th>Image used</th><th>Tool</th></tr>
+    <tr><td>Dark fluctuation</td><td>The same pixel, frame to frame (temporal)</td><td>Individual darks</td><td>ApranatNR (drunk pixels), DarkPixelPlot</td></tr>
+    <tr><td>Scatter in one frame</td><td>A pixel against its same-colour neighbours (spatial)</td><td>One calibrated light</td><td>ApranatNR (star protection)</td></tr>
+    <tr><td>Scatter in a stack</td><td>Same, with the random noise averaged down</td><td>Unregistered average</td><td>ApranatNR (cool file, faint-star protection)</td></tr>
+    <tr><td>Flat pixel noise</td><td>Relative difference from the surroundings (%)</td><td>Master flat</td><td>FlatSmooth</td></tr>
+  </table></div>
+  <p>Temporal scatter tells how differently a pixel reads each time; spatial scatter tells how different it is from its neighbours. Dark fluctuation can only be measured in time: a master dark is an average and has lost it. Conversely, patterns fixed to the sensor (cool pixels, the grain of a flat) are the same in every frame, so they are invisible in time and are measured in space.</p>
+</section>
+
+<section id="tools">
+  <h2>2. Common tools</h2>
+
+  <h3>2.1 An outlier-resistant sigma (1.4826 × MAD)</h3>
+  <p>A plain standard deviation is pulled up by a few large values such as stars or defects. Almost every measurement here therefore uses a robust sigma:</p>
+  <pre><code>MAD   = median( |value − median(value)| )
+sigma = 1.4826 × MAD</code></pre>
+  <p>1.4826 makes it equal to the standard deviation for normally distributed data. Even when almost half of the values are outliers, it still describes the scatter of the normal pixels.</p>
+  <div class="callout"><p>Unless stated otherwise, "5σ" and "3σ" below use this robust sigma. For a normal distribution about one pixel in 3 million lies beyond 5σ, so a pixel beyond 5σ is almost certainly not normal.</p></div>
+
+  <h3>2.2 Comparing same-colour pixels only</h3>
+  <p>In an undebayered colour (Bayer) image, adjacent pixels are different colours. R and G differ in brightness, so comparing them directly would count the colour difference as noise. Comparisons therefore use only the same-colour pixels two pixels apart, and sigma is computed separately for each of the four positions (R, G, G, B). Mono images use the adjacent pixels.</p>
+
+  <h3>2.3 Difference from the neighbour median (residual)</h3>
+  <p>Spatial scatter is measured as each pixel's difference from the median of its 8 same-colour neighbours: the residual.</p>
+  <ul>
+    <li><b>Median, not mean:</b> one hot pixel among the neighbours barely moves the median.</li>
+    <li><b>The pixel itself is excluded:</b> with a 3×3 median that includes the pixel, every pixel that happens to be the median gets a residual of exactly 0, and a sigma computed from residuals piled up at 0 comes out too small.</li>
+    <li><b>Defects are excluded:</b> when repairing drunk pixels, neighbours in the defect map are left out of the median (with fewer than 3 left, the pixel is not repaired).</li>
+  </ul>
+
+  <h3>2.4 Subsampling</h3>
+  <p>Sigmas and medians are computed on evenly spaced samples to save time (at most 1 million pixels in ApranatNR and DarkPixelPlot, 200,000 per colour for repair protection, every third row and column in FlatSmooth). An even stride would pick a single colour, so strides are made odd. On images of millions of pixels the effect on the result is negligible.</p>
+</section>
+
+<section id="dark">
+  <h2>3. Dark fluctuation (drunk pixels)</h2>
+  <p>Input: individual darks (8 or more, ideally about 20). ApranatNR's defect map and DarkPixelPlot's plot use the same computation.</p>
+
+  <h3>3.1 Fluctuation and level of each pixel</h3>
+  <ol class="steps">
+    <li><b>Trimmed mean and trimmed standard deviation:</b> for each pixel, the highest and the lowest value over all frames are dropped, then the mean and standard deviation are computed. A pixel hit by one cosmic ray is then not mistaken for one that always fluctuates.</li>
+    <li><b>Lower value (level):</b> the pixel's dark level is <code>trimmed mean − 0.6745 × trimmed std</code>, the lower quartile of a normal distribution. A drunk pixel that sometimes jumps upward has its mean raised by the jumps, but its lower value stays at its usual level. Compared by the mean, a jumping pixel would be taken for a pixel with high dark current (this happened with Canon EOS 6D darks).</li>
+  </ol>
+
+  <h3>3.2 Expected fluctuation (physics model)</h3>
+  <p>A normal pixel fluctuates by its read noise plus the shot noise of its dark current. Shot-noise variance is proportional to the signal, so:</p>
+  <pre><code>expected² = read noise² + slope × max(0, level − normal level)</code></pre>
+  <ul>
+    <li><b>Normal level and read noise:</b> the medians of the levels and of the fluctuations over all pixels. Almost all pixels are normal, so the medians are the values of a normal pixel.</li>
+    <li><b>Slope:</b> for warm pixels, at least 10 read-noise units above the normal level, <code>(fluctuation² − read noise²) / (level − normal level)</code> is computed, and the median is taken. With fewer than 50 warm pixels the slope is 0 (constant fluctuation).</li>
+    <li><b>Why a model:</b> earlier versions joined the median fluctuation of level groups into a curve. Away from the normal level, a larger share of the pixels are noisy ones, so the curve rose by itself and missed defects; beyond the brightest hot pixel the curve stopped, and judgement there went wrong. The physics model is not raised by noisy pixels, however many there are, and extends to any level.</li>
+    <li><b>Checking the slope:</b> the slope should be proportional to the ADU per electron (the gain). On the ASI533MC Pro it was 2.7 at Gain 100, 85 at 400 and 165 at 460. ZWO gain is in units of 0.1 dB, so 100→400 is 30 dB (×31.6) and 400→460 is 6 dB (×2.0), which matches the slope ratios (×31, ×1.9).</li>
+  </ul>
+
+  <h3>3.3 Decision</h3>
+  <p>Pixels whose fluctuation exceeds <code>4 × expected</code> (1.5 to 20 in the settings) go into the defect map as drunk pixels. The expected fluctuation has a floor of 0.5 ADU in 16-bit units, so that clipped darks do not flag every pixel that moves at all.</p>
+  <figure class="card">
+    <svg viewBox="0 0 640 360" role="img" aria-label="Temporal fluctuation (trimmed std, ADU)" class="fig"><rect x="70" y="20" width="550" height="280" class="plot-bg"/><circle cx="100.3" cy="232.4" r="2" class="d-normal"/><circle cx="98.3" cy="237.8" r="2" class="d-normal"/><circle cx="109.2" cy="236.4" r="2" class="d-normal"/><circle cx="101.8" cy="230.4" r="2" class="d-normal"/><circle cx="97.6" cy="240.6" r="2" class="d-normal"/><circle cx="103.9" cy="252.2" r="2" class="d-normal"/><circle cx="106.2" cy="235.2" r="2" class="d-normal"/><circle cx="108.0" cy="242.5" r="2" class="d-normal"/><circle cx="102.2" cy="242.2" r="2" class="d-normal"/><circle cx="96.5" cy="253.1" r="2" class="d-normal"/><circle cx="99.9" cy="244.5" r="2" class="d-normal"/><circle cx="99.7" cy="261.8" r="2" class="d-normal"/><circle cx="98.1" cy="234.5" r="2" class="d-normal"/><circle cx="99.2" cy="249.0" r="2" class="d-normal"/><circle cx="97.0" cy="229.7" r="2" class="d-normal"/><circle cx="97.8" cy="245.4" r="2" class="d-normal"/><circle cx="105.2" cy="240.0" r="2" class="d-normal"/><circle cx="105.6" cy="249.5" r="2" class="d-normal"/><circle cx="101.4" cy="251.8" r="2" class="d-normal"/><circle cx="99.9" cy="236.4" r="2" class="d-normal"/><circle cx="104.8" cy="239.5" r="2" class="d-normal"/><circle cx="99.0" cy="257.5" r="2" class="d-normal"/><circle cx="99.8" cy="243.1" r="2" class="d-normal"/><circle cx="104.7" cy="243.9" r="2" class="d-normal"/><circle cx="103.4" cy="243.4" r="2" class="d-normal"/><circle cx="95.4" cy="246.6" r="2" class="d-normal"/><circle cx="89.4" cy="225.0" r="2" class="d-normal"/><circle cx="96.3" cy="234.6" r="2" class="d-normal"/><circle cx="104.2" cy="239.7" r="2" class="d-normal"/><circle cx="98.1" cy="249.0" r="2" class="d-normal"/><circle cx="101.6" cy="233.1" r="2" class="d-normal"/><circle cx="97.1" cy="246.6" r="2" class="d-normal"/><circle cx="101.2" cy="238.9" r="2" class="d-normal"/><circle cx="101.5" cy="230.1" r="2" class="d-normal"/><circle cx="97.6" cy="241.4" r="2" class="d-normal"/><circle cx="100.5" cy="258.3" r="2" class="d-normal"/><circle cx="104.2" cy="241.8" r="2" class="d-normal"/><circle cx="103.6" cy="245.0" r="2" class="d-normal"/><circle cx="99.5" cy="231.8" r="2" class="d-normal"/><circle cx="100.6" cy="252.2" r="2" class="d-normal"/><circle cx="104.8" cy="231.2" r="2" class="d-normal"/><circle cx="94.3" cy="237.5" r="2" class="d-normal"/><circle cx="101.7" cy="233.3" r="2" class="d-normal"/><circle cx="99.7" cy="236.6" r="2" class="d-normal"/><circle cx="102.8" cy="244.0" r="2" class="d-normal"/><circle cx="102.8" cy="240.2" r="2" class="d-normal"/><circle cx="99.1" cy="272.9" r="2" class="d-normal"/><circle cx="99.2" cy="238.8" r="2" class="d-normal"/><circle cx="95.8" cy="245.8" r="2" class="d-normal"/><circle cx="103.6" cy="238.0" r="2" class="d-normal"/><circle cx="101.7" cy="230.1" r="2" class="d-normal"/><circle cx="98.6" cy="234.3" r="2" class="d-normal"/><circle cx="109.4" cy="266.4" r="2" class="d-normal"/><circle cx="109.4" cy="234.2" r="2" class="d-normal"/><circle cx="98.6" cy="255.2" r="2" class="d-normal"/><circle cx="101.2" cy="236.9" r="2" class="d-normal"/><circle cx="102.9" cy="249.7" r="2" class="d-normal"/><circle cx="100.2" cy="235.5" r="2" class="d-normal"/><circle cx="98.3" cy="243.0" r="2" class="d-normal"/><circle cx="98.2" cy="247.4" r="2" class="d-normal"/><circle cx="99.4" cy="255.3" r="2" class="d-normal"/><circle cx="97.3" cy="235.6" r="2" class="d-normal"/><circle cx="100.1" cy="244.2" r="2" class="d-normal"/><circle cx="99.9" cy="237.4" r="2" class="d-normal"/><circle cx="102.2" cy="232.7" r="2" class="d-normal"/><circle cx="103.9" cy="233.4" r="2" class="d-normal"/><circle cx="102.4" cy="239.0" r="2" class="d-normal"/><circle cx="93.0" cy="267.2" r="2" class="d-normal"/><circle cx="96.6" cy="259.4" r="2" class="d-normal"/><circle cx="101.8" cy="244.4" r="2" class="d-normal"/><circle cx="99.2" cy="234.8" r="2" class="d-normal"/><circle cx="97.7" cy="244.6" r="2" class="d-normal"/><circle cx="106.5" cy="247.1" r="2" class="d-normal"/><circle cx="105.3" cy="252.3" r="2" class="d-normal"/><circle cx="102.8" cy="245.4" r="2" class="d-normal"/><circle cx="103.7" cy="264.3" r="2" class="d-normal"/><circle cx="100.6" cy="233.2" r="2" class="d-normal"/><circle cx="101.9" cy="240.1" r="2" class="d-normal"/><circle cx="105.8" cy="250.6" r="2" class="d-normal"/><circle cx="98.5" cy="240.9" r="2" class="d-normal"/><circle cx="106.8" cy="237.6" r="2" class="d-normal"/><circle cx="95.3" cy="240.2" r="2" class="d-normal"/><circle cx="102.7" cy="230.4" r="2" class="d-normal"/><circle cx="100.1" cy="232.0" r="2" class="d-normal"/><circle cx="98.9" cy="240.4" r="2" class="d-normal"/><circle cx="100.1" cy="237.1" r="2" class="d-normal"/><circle cx="98.2" cy="248.8" r="2" class="d-normal"/><circle cx="99.9" cy="241.4" r="2" class="d-normal"/><circle cx="101.2" cy="252.5" r="2" class="d-normal"/><circle cx="106.9" cy="239.2" r="2" class="d-normal"/><circle cx="100.2" cy="241.5" r="2" class="d-normal"/><circle cx="109.7" cy="247.4" r="2" class="d-normal"/><circle cx="103.0" cy="250.4" r="2" class="d-normal"/><circle cx="103.5" cy="250.4" r="2" class="d-normal"/><circle cx="97.8" cy="233.4" r="2" class="d-normal"/><circle cx="105.4" cy="236.0" r="2" class="d-normal"/><circle cx="103.1" cy="227.4" r="2" class="d-normal"/><circle cx="95.1" cy="255.9" r="2" class="d-normal"/><circle cx="107.7" cy="236.3" r="2" class="d-normal"/><circle cx="100.8" cy="234.7" r="2" class="d-normal"/><circle cx="97.9" cy="231.3" r="2" class="d-normal"/><circle cx="104.4" cy="236.3" r="2" class="d-normal"/><circle cx="98.4" cy="239.2" r="2" class="d-normal"/><circle cx="107.1" cy="217.4" r="2" class="d-normal"/><circle cx="104.2" cy="231.4" r="2" class="d-normal"/><circle cx="102.3" cy="232.1" r="2" class="d-normal"/><circle cx="101.4" cy="279.9" r="2" class="d-normal"/><circle cx="102.2" cy="228.6" r="2" class="d-normal"/><circle cx="100.5" cy="247.8" r="2" class="d-normal"/><circle cx="100.3" cy="247.6" r="2" class="d-normal"/><circle cx="102.8" cy="230.0" r="2" class="d-normal"/><circle cx="101.1" cy="250.3" r="2" class="d-normal"/><circle cx="100.2" cy="248.5" r="2" class="d-normal"/><circle cx="100.1" cy="244.2" r="2" class="d-normal"/><circle cx="104.2" cy="245.5" r="2" class="d-normal"/><circle cx="105.0" cy="241.3" r="2" class="d-normal"/><circle cx="100.0" cy="240.1" r="2" class="d-normal"/><circle cx="105.6" cy="251.6" r="2" class="d-normal"/><circle cx="101.6" cy="249.8" r="2" class="d-normal"/><circle cx="104.3" cy="229.0" r="2" class="d-normal"/><circle cx="106.1" cy="229.6" r="2" class="d-normal"/><circle cx="100.8" cy="232.9" r="2" class="d-normal"/><circle cx="103.2" cy="233.5" r="2" class="d-normal"/><circle cx="101.2" cy="253.1" r="2" class="d-normal"/><circle cx="99.8" cy="243.2" r="2" class="d-normal"/><circle cx="110.2" cy="266.1" r="2" class="d-normal"/><circle cx="106.7" cy="230.3" r="2" class="d-normal"/><circle cx="100.2" cy="238.8" r="2" class="d-normal"/><circle cx="105.8" cy="249.6" r="2" class="d-normal"/><circle cx="97.9" cy="245.2" r="2" class="d-normal"/><circle cx="106.4" cy="267.3" r="2" class="d-normal"/><circle cx="103.9" cy="242.3" r="2" class="d-normal"/><circle cx="99.1" cy="261.6" r="2" class="d-normal"/><circle cx="104.5" cy="235.6" r="2" class="d-normal"/><circle cx="104.3" cy="243.1" r="2" class="d-normal"/><circle cx="102.6" cy="247.1" r="2" class="d-normal"/><circle cx="99.7" cy="257.3" r="2" class="d-normal"/><circle cx="92.0" cy="248.4" r="2" class="d-normal"/><circle cx="100.2" cy="235.0" r="2" class="d-normal"/><circle cx="96.4" cy="235.4" r="2" class="d-normal"/><circle cx="97.8" cy="236.8" r="2" class="d-normal"/><circle cx="98.3" cy="230.0" r="2" class="d-normal"/><circle cx="105.2" cy="249.0" r="2" class="d-normal"/><circle cx="104.4" cy="250.3" r="2" class="d-normal"/><circle cx="102.3" cy="238.5" r="2" class="d-normal"/><circle cx="95.4" cy="230.8" r="2" class="d-normal"/><circle cx="100.4" cy="244.3" r="2" class="d-normal"/><circle cx="98.2" cy="231.0" r="2" class="d-normal"/><circle cx="93.5" cy="246.0" r="2" class="d-normal"/><circle cx="106.1" cy="239.7" r="2" class="d-normal"/><circle cx="97.0" cy="248.9" r="2" class="d-normal"/><circle cx="102.1" cy="244.1" r="2" class="d-normal"/><circle cx="100.3" cy="226.0" r="2" class="d-normal"/><circle cx="96.6" cy="235.8" r="2" class="d-normal"/><circle cx="93.7" cy="250.9" r="2" class="d-normal"/><circle cx="97.8" cy="246.9" r="2" class="d-normal"/><circle cx="101.4" cy="235.0" r="2" class="d-normal"/><circle cx="102.1" cy="251.4" r="2" class="d-normal"/><circle cx="100.0" cy="236.1" r="2" class="d-normal"/><circle cx="107.1" cy="266.6" r="2" class="d-normal"/><circle cx="102.2" cy="246.8" r="2" class="d-normal"/><circle cx="97.2" cy="233.7" r="2" class="d-normal"/><circle cx="107.2" cy="241.4" r="2" class="d-normal"/><circle cx="102.7" cy="251.0" r="2" class="d-normal"/><circle cx="106.8" cy="242.9" r="2" class="d-normal"/><circle cx="102.7" cy="251.6" r="2" class="d-normal"/><circle cx="99.3" cy="230.6" r="2" class="d-normal"/><circle cx="90.7" cy="261.9" r="2" class="d-normal"/><circle cx="98.0" cy="247.3" r="2" class="d-normal"/><circle cx="103.4" cy="235.6" r="2" class="d-normal"/><circle cx="101.4" cy="233.9" r="2" class="d-normal"/><circle cx="98.7" cy="249.6" r="2" class="d-normal"/><circle cx="96.6" cy="236.2" r="2" class="d-normal"/><circle cx="103.3" cy="238.8" r="2" class="d-normal"/><circle cx="100.3" cy="246.1" r="2" class="d-normal"/><circle cx="106.2" cy="266.4" r="2" class="d-normal"/><circle cx="100.0" cy="238.2" r="2" class="d-normal"/><circle cx="100.2" cy="241.2" r="2" class="d-normal"/><circle cx="102.2" cy="239.7" r="2" class="d-normal"/><circle cx="103.6" cy="240.3" r="2" class="d-normal"/><circle cx="103.6" cy="249.1" r="2" class="d-normal"/><circle cx="100.5" cy="233.9" r="2" class="d-normal"/><circle cx="98.3" cy="237.1" r="2" class="d-normal"/><circle cx="105.5" cy="243.8" r="2" class="d-normal"/><circle cx="97.5" cy="231.5" r="2" class="d-normal"/><circle cx="99.3" cy="227.2" r="2" class="d-normal"/><circle cx="98.2" cy="247.9" r="2" class="d-normal"/><circle cx="103.6" cy="238.7" r="2" class="d-normal"/><circle cx="107.7" cy="253.0" r="2" class="d-normal"/><circle cx="109.1" cy="240.8" r="2" class="d-normal"/><circle cx="98.1" cy="237.2" r="2" class="d-normal"/><circle cx="104.3" cy="241.1" r="2" class="d-normal"/><circle cx="102.5" cy="228.4" r="2" class="d-normal"/><circle cx="102.8" cy="237.6" r="2" class="d-normal"/><circle cx="99.7" cy="246.9" r="2" class="d-normal"/><circle cx="106.2" cy="247.3" r="2" class="d-normal"/><circle cx="101.7" cy="238.0" r="2" class="d-normal"/><circle cx="101.5" cy="233.6" r="2" class="d-normal"/><circle cx="103.8" cy="233.5" r="2" class="d-normal"/><circle cx="99.7" cy="258.1" r="2" class="d-normal"/><circle cx="99.9" cy="257.2" r="2" class="d-normal"/><circle cx="103.0" cy="236.4" r="2" class="d-normal"/><circle cx="104.0" cy="229.0" r="2" class="d-normal"/><circle cx="104.1" cy="236.6" r="2" class="d-normal"/><circle cx="106.9" cy="244.6" r="2" class="d-normal"/><circle cx="96.3" cy="247.5" r="2" class="d-normal"/><circle cx="97.9" cy="237.0" r="2" class="d-normal"/><circle cx="108.8" cy="225.6" r="2" class="d-normal"/><circle cx="100.3" cy="249.8" r="2" class="d-normal"/><circle cx="103.1" cy="256.0" r="2" class="d-normal"/><circle cx="100.0" cy="244.0" r="2" class="d-normal"/><circle cx="101.4" cy="268.8" r="2" class="d-normal"/><circle cx="99.0" cy="237.4" r="2" class="d-normal"/><circle cx="98.7" cy="241.0" r="2" class="d-normal"/><circle cx="99.2" cy="239.9" r="2" class="d-normal"/><circle cx="99.0" cy="249.3" r="2" class="d-normal"/><circle cx="106.3" cy="253.7" r="2" class="d-normal"/><circle cx="96.8" cy="234.8" r="2" class="d-normal"/><circle cx="102.6" cy="253.0" r="2" class="d-normal"/><circle cx="103.2" cy="253.1" r="2" class="d-normal"/><circle cx="95.0" cy="241.4" r="2" class="d-normal"/><circle cx="104.5" cy="238.5" r="2" class="d-normal"/><circle cx="96.1" cy="233.3" r="2" class="d-normal"/><circle cx="109.0" cy="252.2" r="2" class="d-normal"/><circle cx="99.9" cy="233.0" r="2" class="d-normal"/><circle cx="97.2" cy="275.5" r="2" class="d-normal"/><circle cx="103.3" cy="250.1" r="2" class="d-normal"/><circle cx="94.5" cy="237.0" r="2" class="d-normal"/><circle cx="96.7" cy="260.0" r="2" class="d-normal"/><circle cx="105.1" cy="252.8" r="2" class="d-normal"/><circle cx="102.9" cy="266.7" r="2" class="d-normal"/><circle cx="101.1" cy="250.6" r="2" class="d-normal"/><circle cx="99.5" cy="250.3" r="2" class="d-normal"/><circle cx="106.3" cy="232.9" r="2" class="d-normal"/><circle cx="96.9" cy="223.6" r="2" class="d-normal"/><circle cx="106.1" cy="240.2" r="2" class="d-normal"/><circle cx="103.2" cy="230.1" r="2" class="d-normal"/><circle cx="102.3" cy="234.9" r="2" class="d-normal"/><circle cx="103.6" cy="251.1" r="2" class="d-normal"/><circle cx="103.9" cy="258.0" r="2" class="d-normal"/><circle cx="103.1" cy="238.2" r="2" class="d-normal"/><circle cx="101.6" cy="241.1" r="2" class="d-normal"/><circle cx="99.4" cy="244.2" r="2" class="d-normal"/><circle cx="104.3" cy="235.8" r="2" class="d-normal"/><circle cx="94.3" cy="267.6" r="2" class="d-normal"/><circle cx="101.1" cy="244.1" r="2" class="d-normal"/><circle cx="95.9" cy="238.8" r="2" class="d-normal"/><circle cx="98.2" cy="242.5" r="2" class="d-normal"/><circle cx="99.7" cy="251.0" r="2" class="d-normal"/><circle cx="98.2" cy="223.2" r="2" class="d-normal"/><circle cx="107.1" cy="231.9" r="2" class="d-normal"/><circle cx="101.5" cy="269.3" r="2" class="d-normal"/><circle cx="100.8" cy="248.6" r="2" class="d-normal"/><circle cx="102.9" cy="241.0" r="2" class="d-normal"/><circle cx="108.3" cy="235.8" r="2" class="d-normal"/><circle cx="105.0" cy="254.7" r="2" class="d-normal"/><circle cx="95.1" cy="235.6" r="2" class="d-normal"/><circle cx="97.3" cy="238.3" r="2" class="d-normal"/><circle cx="100.4" cy="229.8" r="2" class="d-normal"/><circle cx="216.0" cy="180.9" r="2.2" class="d-warm"/><circle cx="489.2" cy="148.7" r="2.2" class="d-warm"/><circle cx="266.4" cy="181.1" r="2.2" class="d-warm"/><circle cx="144.0" cy="201.7" r="2.2" class="d-warm"/><circle cx="277.7" cy="176.4" r="2.2" class="d-warm"/><circle cx="409.7" cy="142.7" r="2.2" class="d-warm"/><circle cx="510.1" cy="124.8" r="2.2" class="d-warm"/><circle cx="218.4" cy="177.8" r="2.2" class="d-warm"/><circle cx="558.4" cy="95.0" r="2.2" class="d-warm"/><circle cx="135.4" cy="234.4" r="2.2" class="d-warm"/><circle cx="129.1" cy="218.2" r="2.2" class="d-warm"/><circle cx="176.7" cy="188.8" r="2.2" class="d-warm"/><circle cx="233.9" cy="180.8" r="2.2" class="d-warm"/><circle cx="223.3" cy="170.4" r="2.2" class="d-warm"/><circle cx="223.4" cy="164.5" r="2.2" class="d-warm"/><circle cx="412.2" cy="155.1" r="2.2" class="d-warm"/><circle cx="172.7" cy="191.0" r="2.2" class="d-warm"/><circle cx="212.0" cy="190.7" r="2.2" class="d-warm"/><circle cx="434.2" cy="123.1" r="2.2" class="d-warm"/><circle cx="158.2" cy="213.8" r="2.2" class="d-warm"/><circle cx="398.1" cy="133.5" r="2.2" class="d-warm"/><circle cx="182.3" cy="205.6" r="2.2" class="d-warm"/><circle cx="284.2" cy="170.1" r="2.2" class="d-warm"/><circle cx="150.0" cy="211.2" r="2.2" class="d-warm"/><circle cx="221.1" cy="188.1" r="2.2" class="d-warm"/><circle cx="527.2" cy="127.0" r="2.2" class="d-warm"/><circle cx="256.6" cy="173.1" r="2.2" class="d-warm"/><circle cx="483.8" cy="108.5" r="2.2" class="d-warm"/><circle cx="129.7" cy="247.1" r="2.2" class="d-warm"/><circle cx="173.4" cy="208.1" r="2.2" class="d-warm"/><circle cx="122.1" cy="218.1" r="2.2" class="d-warm"/><circle cx="392.8" cy="138.3" r="2.2" class="d-warm"/><circle cx="134.9" cy="228.0" r="2.2" class="d-warm"/><circle cx="250.0" cy="175.9" r="2.2" class="d-warm"/><circle cx="372.3" cy="147.0" r="2.2" class="d-warm"/><circle cx="451.7" cy="145.6" r="2.2" class="d-warm"/><circle cx="368.2" cy="146.6" r="2.2" class="d-warm"/><circle cx="377.3" cy="147.5" r="2.2" class="d-warm"/><circle cx="458.2" cy="140.3" r="2.2" class="d-warm"/><circle cx="507.1" cy="99.7" r="2.2" class="d-warm"/><circle cx="400.6" cy="135.1" r="2.2" class="d-warm"/><circle cx="558.1" cy="120.8" r="2.2" class="d-warm"/><circle cx="153.6" cy="200.5" r="2.2" class="d-warm"/><circle cx="133.7" cy="213.2" r="2.2" class="d-warm"/><circle cx="132.6" cy="202.5" r="2.2" class="d-warm"/><circle cx="279.7" cy="162.0" r="2.2" class="d-warm"/><circle cx="155.8" cy="217.8" r="2.2" class="d-warm"/><circle cx="238.5" cy="173.9" r="2.2" class="d-warm"/><circle cx="256.6" cy="164.2" r="2.2" class="d-warm"/><circle cx="162.1" cy="209.4" r="2.2" class="d-warm"/><circle cx="387.6" cy="137.2" r="2.2" class="d-warm"/><circle cx="125.5" cy="212.6" r="2.2" class="d-warm"/><circle cx="385.6" cy="140.4" r="2.2" class="d-warm"/><circle cx="477.9" cy="120.3" r="2.2" class="d-warm"/><circle cx="444.4" cy="125.9" r="2.2" class="d-warm"/><circle cx="160.5" cy="203.8" r="2.2" class="d-warm"/><circle cx="244.1" cy="177.6" r="2.2" class="d-warm"/><circle cx="309.0" cy="168.5" r="2.2" class="d-warm"/><circle cx="127.4" cy="226.0" r="2.2" class="d-warm"/><circle cx="158.7" cy="204.6" r="2.2" class="d-warm"/><circle cx="435.9" cy="146.6" r="2.2" class="d-warm"/><circle cx="157.0" cy="200.2" r="2.2" class="d-warm"/><circle cx="164.7" cy="204.7" r="2.2" class="d-warm"/><circle cx="316.5" cy="161.5" r="2.2" class="d-warm"/><circle cx="178.8" cy="192.8" r="2.2" class="d-warm"/><circle cx="557.4" cy="109.3" r="2.2" class="d-warm"/><circle cx="122.2" cy="212.3" r="2.2" class="d-warm"/><circle cx="215.1" cy="172.2" r="2.2" class="d-warm"/><circle cx="335.3" cy="168.0" r="2.2" class="d-warm"/><circle cx="145.9" cy="218.5" r="2.2" class="d-warm"/><circle cx="230.1" cy="171.7" r="2.2" class="d-warm"/><circle cx="405.8" cy="132.2" r="2.2" class="d-warm"/><circle cx="126.4" cy="222.3" r="2.2" class="d-warm"/><circle cx="261.9" cy="161.3" r="2.2" class="d-warm"/><circle cx="405.0" cy="128.1" r="2.2" class="d-warm"/><circle cx="154.1" cy="203.8" r="2.2" class="d-warm"/><circle cx="280.4" cy="143.9" r="2.2" class="d-warm"/><circle cx="182.1" cy="195.1" r="2.2" class="d-warm"/><circle cx="362.9" cy="148.8" r="2.2" class="d-warm"/><circle cx="398.0" cy="135.3" r="2.2" class="d-warm"/><circle cx="181.7" cy="194.0" r="2.2" class="d-warm"/><circle cx="205.9" cy="196.3" r="2.2" class="d-warm"/><circle cx="523.0" cy="113.8" r="2.2" class="d-warm"/><circle cx="131.8" cy="207.0" r="2.2" class="d-warm"/><circle cx="290.6" cy="165.7" r="2.2" class="d-warm"/><circle cx="346.4" cy="153.8" r="2.2" class="d-warm"/><circle cx="125.9" cy="238.3" r="2.2" class="d-warm"/><circle cx="122.6" cy="213.1" r="2.2" class="d-warm"/><circle cx="393.7" cy="154.5" r="2.2" class="d-warm"/><circle cx="295.9" cy="160.4" r="2.2" class="d-warm"/><circle cx="117.3" cy="140.3" r="2.6" class="d-rtn"/><circle cx="102.5" cy="89.9" r="2.6" class="d-rtn"/><circle cx="235.5" cy="24.6" r="2.6" class="d-rtn"/><circle cx="101.6" cy="63.7" r="2.6" class="d-rtn"/><circle cx="218.5" cy="28.4" r="2.6" class="d-rtn"/><circle cx="162.4" cy="35.6" r="2.6" class="d-rtn"/><circle cx="113.8" cy="72.5" r="2.6" class="d-rtn"/><circle cx="114.7" cy="88.8" r="2.6" class="d-rtn"/><circle cx="103.1" cy="153.6" r="2.6" class="d-rtn"/><circle cx="139.2" cy="107.5" r="2.6" class="d-rtn"/><circle cx="117.2" cy="141.2" r="2.6" class="d-rtn"/><circle cx="103.9" cy="123.4" r="2.6" class="d-rtn"/><circle cx="107.6" cy="129.0" r="2.6" class="d-rtn"/><circle cx="105.7" cy="73.8" r="2.6" class="d-rtn"/><circle cx="114.8" cy="72.0" r="2.6" class="d-rtn"/><circle cx="110.0" cy="86.5" r="2.6" class="d-rtn"/><circle cx="102.7" cy="72.8" r="2.6" class="d-rtn"/><circle cx="155.6" cy="62.1" r="2.6" class="d-rtn"/><circle cx="101.5" cy="74.9" r="2.6" class="d-rtn"/><circle cx="101.6" cy="156.5" r="2.6" class="d-rtn"/><circle cx="106.0" cy="75.1" r="2.6" class="d-rtn"/><circle cx="108.6" cy="112.1" r="2.6" class="d-rtn"/><circle cx="344.4" cy="45.7" r="2.6" class="d-rtn"/><circle cx="155.0" cy="69.2" r="2.6" class="d-rtn"/><circle cx="116.4" cy="107.3" r="2.6" class="d-rtn"/><circle cx="110.0" cy="116.4" r="2.6" class="d-rtn"/><circle cx="106.6" cy="83.3" r="2.6" class="d-rtn"/><circle cx="103.6" cy="149.3" r="2.6" class="d-rtn"/><circle cx="102.4" cy="63.0" r="2.6" class="d-rtn"/><circle cx="107.6" cy="116.4" r="2.6" class="d-rtn"/><circle cx="101.7" cy="115.2" r="2.6" class="d-rtn"/><circle cx="103.1" cy="151.4" r="2.6" class="d-rtn"/><circle cx="138.3" cy="124.0" r="2.6" class="d-rtn"/><circle cx="151.7" cy="55.6" r="2.6" class="d-rtn"/><circle cx="109.3" cy="130.5" r="2.6" class="d-rtn"/><circle cx="311.5" cy="71.6" r="2.6" class="d-rtn"/><circle cx="101.5" cy="96.3" r="2.6" class="d-rtn"/><circle cx="102.0" cy="93.2" r="2.6" class="d-rtn"/><circle cx="108.6" cy="114.4" r="2.6" class="d-rtn"/><circle cx="109.6" cy="96.2" r="2.6" class="d-rtn"/><polyline points="70.0,241.9 76.9,241.9 83.8,241.9 90.6,241.9 97.5,241.9 104.4,238.4 111.3,231.5 118.1,225.8 125.0,220.9 131.9,216.5 138.8,212.6 145.6,209.1 152.5,205.8 159.4,202.8 166.2,199.9 173.1,197.2 180.0,194.6 186.9,192.2 193.8,189.8 200.6,187.5 207.5,185.3 214.4,183.2 221.2,181.2 228.1,179.2 235.0,177.2 241.9,175.3 248.8,173.5 255.6,171.6 262.5,169.9 269.4,168.1 276.3,166.4 283.1,164.7 290.0,163.0 296.9,161.4 303.7,159.7 310.6,158.1 317.5,156.5 324.4,155.0 331.3,153.4 338.1,151.9 345.0,150.3 351.9,148.8 358.8,147.3 365.6,145.8 372.5,144.3 379.4,142.9 386.2,141.4 393.1,140.0 400.0,138.5 406.9,137.1 413.8,135.7 420.6,134.2 427.5,132.8 434.4,131.4 441.3,130.0 448.1,128.6 455.0,127.2 461.9,125.8 468.8,124.5 475.6,123.1 482.5,121.7 489.4,120.4 496.2,119.0 503.1,117.6 510.0,116.3 516.9,114.9 523.8,113.6 530.6,112.2 537.5,110.9 544.4,109.5 551.3,108.2 558.1,106.9 565.0,105.5 571.9,104.2 578.8,102.9 585.6,101.5 592.5,100.2 599.4,98.9 606.3,97.6 613.1,96.2 620.0,94.9" class="c-model"/><polyline points="70.0,168.7 76.9,168.7 83.8,168.7 90.6,168.7 97.5,168.7 104.4,165.1 111.3,158.2 118.1,152.5 125.0,147.6 131.9,143.3 138.8,139.4 145.6,135.8 152.5,132.6 159.4,129.5 166.2,126.6 173.1,123.9 180.0,121.4 186.9,118.9 193.8,116.5 200.6,114.3 207.5,112.1 214.4,110.0 221.2,107.9 228.1,105.9 235.0,104.0 241.9,102.1 248.8,100.2 255.6,98.4 262.5,96.6 269.4,94.8 276.3,93.1 283.1,91.4 290.0,89.7 296.9,88.1 303.7,86.5 310.6,84.9 317.5,83.3 324.4,81.7 331.3,80.1 338.1,78.6 345.0,77.1 351.9,75.6 358.8,74.0 365.6,72.6 372.5,71.1 379.4,69.6 386.2,68.2 393.1,66.7 400.0,65.3 406.9,63.8 413.8,62.4 420.6,61.0 427.5,59.6 434.4,58.2 441.3,56.8 448.1,55.4 455.0,54.0 461.9,52.6 468.8,51.2 475.6,49.8 482.5,48.5 489.4,47.1 496.2,45.7 503.1,44.4 510.0,43.0 516.9,41.7 523.8,40.3 530.6,39.0 537.5,37.6 544.4,36.3 551.3,34.9 558.1,33.6 565.0,32.3 571.9,30.9 578.8,29.6 585.6,28.3 592.5,26.9 599.4,25.6 606.3,24.3 613.1,23.0 620.0,21.6" class="c-thr"/><line x1="70" y1="300" x2="620" y2="300" class="axis"/><line x1="70" y1="20" x2="70" y2="300" class="axis"/><line x1="101.4" y1="300" x2="101.4" y2="305" class="axis"/><text x="101.4" y="320" text-anchor="middle" class="tick">100</text><line x1="255.8" y1="300" x2="255.8" y2="305" class="axis"/><text x="255.8" y="320" text-anchor="middle" class="tick">300</text><line x1="425.1" y1="300" x2="425.1" y2="305" class="axis"/><text x="425.1" y="320" text-anchor="middle" class="tick">1000</text><line x1="579.6" y1="300" x2="579.6" y2="305" class="axis"/><text x="579.6" y="320" text-anchor="middle" class="tick">3000</text><line x1="65" y1="300.0" x2="70" y2="300.0" class="axis"/><text x="61" y="304.0" text-anchor="end" class="tick">1</text><line x1="65" y1="241.9" x2="70" y2="241.9" class="axis"/><text x="61" y="245.9" text-anchor="end" class="tick">3</text><line x1="65" y1="178.3" x2="70" y2="178.3" class="axis"/><text x="61" y="182.3" text-anchor="end" class="tick">10</text><line x1="65" y1="120.3" x2="70" y2="120.3" class="axis"/><text x="61" y="124.3" text-anchor="end" class="tick">30</text><line x1="65" y1="56.6" x2="70" y2="56.6" class="axis"/><text x="61" y="60.6" text-anchor="end" class="tick">100</text><rect x="374" y="188" width="242" height="104" rx="6" class="legend-bg"/><circle cx="392" cy="200" r="3.5" class="d-normal"/><text x="404" y="204" class="lg">Normal pixels</text><circle cx="392" cy="218" r="3.5" class="d-warm"/><text x="404" y="222" class="lg">Warm and hot pixels</text><circle cx="392" cy="236" r="3.5" class="d-rtn"/><text x="404" y="240" class="lg">Drunk (RTN) pixels (flagged)</text><line x1="384" y1="254" x2="400" y2="254" class="c-model"/><text x="404" y="258" class="lg">Expected fluctuation (model)</text><line x1="384" y1="272" x2="400" y2="272" class="c-thr"/><text x="404" y="276" class="lg">Threshold (model × 4)</text><text x="345" y="352" text-anchor="middle" class="lab">Dark level (lower value, ADU)</text><text transform="translate(16 160) rotate(-90)" text-anchor="middle" class="lab">Temporal fluctuation (trimmed std, ADU)</text></svg>
+    <figcaption>How to read a DarkPixelPlot chart (schematic). The horizontal axis is a pixel's dark level, the vertical axis its frame-to-frame fluctuation. Normal pixels cluster at the lower left; warm and hot pixels follow the model curve to the upper right. Points far above the curve are drunk pixels.</figcaption>
+  </figure>
+  <div class="callout warn"><p><b>One set of darks does not find them all.</b> Drunk pixels come and go, so one set of 24 darks finds about 60% of them. A map built from darks of another day agrees on 60–70% of its pixels, against about 1% by chance, so the pixels found are real defects.</p></div>
+</section>
+
+<section id="frame">
+  <h2>4. Scatter in one light (star protection)</h2>
+  <p>Replacing a defect by its neighbour median dims a star whose core sits on it. The change made by the replacement is therefore compared with the scatter of that frame.</p>
+  <ol class="steps">
+    <li><b>Frame sigma:</b> in one calibrated light, the robust sigma of the residuals (2.3) of pixels outside the defect map, per colour. It is that frame's pixel-to-pixel scatter: sky shot noise plus read noise.</li>
+    <li><b>Decision:</b> a defect whose value would change by more than 5σ is not repaired. A drunk-pixel jump stays within a few sigma of the sky noise; a star core is far brighter.</li>
+  </ol>
+  <p>A faint star buried in the noise of one frame escapes this test. So the unregistered stack of the unrepaired lights is checked as well (the per-pixel average without the brightest frame, so cosmic rays are not taken for stars). Without dithering a star stays on the same pixels and stands out clearly in the stack.</p>
+  <ul>
+    <li><b>Own excess:</b> in the stack, the pixel's residual exceeds 5σ (sigma from the stack, same method).</li>
+    <li><b>Footprint:</b> the residuals of the 8 adjacent pixels (any colour), in sigma units z, each capped at 6, give <code>Σz / √(number of pixels)</code> above 3. Starlight spreads to adjacent pixels; a drunk-pixel residual stays on one pixel. The cap keeps one adjacent hot pixel from meeting the condition alone.</li>
+  </ul>
+  <div class="callout warn"><p><b>It protects too much in low-noise frames.</b> In darks with no sky noise, or short narrowband exposures, the drunk-pixel jumps themselves exceed 5σ, and background defects are left unrepaired.</p></div>
+</section>
+
+<section id="cool">
+  <h2>5. The stacked image (cool file)</h2>
+  <p>Averaging the lights without registration lowers the random noise by √(number of frames), and blurs the stars if the field drifts a little. Only dark spots fixed to the sensor (cool pixels) stay in place.</p>
+  <ol class="steps">
+    <li>The residual (difference from the median of the 8 same-colour neighbours) of every pixel of the stack is computed, with its median and robust sigma per colour.</li>
+    <li>Pixels with a residual below <code>min(0, median) − k × sigma</code> are cool pixels (k = 5 by default, 0 to 10 in the settings). The reference never goes above 0, so k = 0 means exactly "every pixel darker than its neighbours" (the article's "threshold zero").</li>
+    <li><b>Structure protection:</b> where the range of the 8 neighbours (maximum − minimum, without the brightest and the darkest one) exceeds 5σ, the pixel lies on a star image or a nebula edge and is not corrected. Only isolated dark spots on flat ground are.</li>
+    <li>The difference from the surroundings (−residual) is stored in the cool file and added to that pixel in every frame.</li>
+  </ol>
+</section>
+
+<section id="flat">
+  <h2>6. Pixel noise of the master flat (FlatSmooth)</h2>
+
+  <h3>6.1 Why flat noise matters</h3>
+  <p>Every light is divided by the flat. A relative pixel noise σ<sub>flat</sub> in the flat stamps every light with the same pattern, of size brightness × σ<sub>flat</sub>, at the same sensor position. Random noise falls as 1/√N when frames are stacked; this pattern does not fall at all.</p>
+  <pre><code>master noise² ≈ (random noise of one frame)² / N + fixed pattern²</code></pre>
+  <p>If the field does not move, the pattern stays as it is. If it drifts slowly, registration stretches the pattern along the drift into the streaks of walking noise.</p>
+  <figure class="card">
+    <svg viewBox="0 0 640 330" role="img" aria-label="Background noise (relative)" class="fig"><rect x="78" y="20" width="542" height="250" class="plot-bg"/><polyline points="78.0,40.4 87.0,44.2 96.1,48.1 105.1,52.0 114.1,55.8 123.2,59.7 132.2,63.5 141.2,67.4 150.3,71.3 159.3,75.1 168.3,79.0 177.4,82.8 186.4,86.7 195.4,90.6 204.5,94.4 213.5,98.3 222.5,102.2 231.6,106.0 240.6,109.9 249.6,113.7 258.7,117.6 267.7,121.5 276.7,125.3 285.8,129.2 294.8,133.0 303.8,136.9 312.9,140.8 321.9,144.6 330.9,148.5 340.0,152.3 349.0,156.2 358.0,160.1 367.1,163.9 376.1,167.8 385.1,171.6 394.2,175.5 403.2,179.4 412.2,183.2 421.3,187.1 430.3,191.0 439.3,194.8 448.4,198.7 457.4,202.5 466.4,206.4 475.5,210.3 484.5,214.1 493.5,218.0 502.6,221.8 511.6,225.7 520.6,229.6 529.7,233.4 538.7,237.3 547.7,241.1 556.8,245.0 565.8,248.9 574.8,252.7 583.9,256.6 592.9,260.4 601.9,264.3 611.0,268.2 620.0,272.0" class="c-random"/><polyline points="78.0,25.3 87.0,28.1 96.1,30.9 105.1,33.6 114.1,36.2 123.2,38.8 132.2,41.3 141.2,43.8 150.3,46.2 159.3,48.5 168.3,50.7 177.4,52.9 186.4,55.0 195.4,57.0 204.5,58.9 213.5,60.8 222.5,62.6 231.6,64.3 240.6,65.9 249.6,67.5 258.7,69.0 267.7,70.5 276.7,71.8 285.8,73.1 294.8,74.4 303.8,75.5 312.9,76.7 321.9,77.7 330.9,78.7 340.0,79.6 349.0,80.5 358.0,81.3 367.1,82.1 376.1,82.9 385.1,83.6 394.2,84.2 403.2,84.8 412.2,85.4 421.3,85.9 430.3,86.4 439.3,86.9 448.4,87.3 457.4,87.7 466.4,88.1 475.5,88.5 484.5,88.8 493.5,89.1 502.6,89.4 511.6,89.7 520.6,89.9 529.7,90.1 538.7,90.4 547.7,90.6 556.8,90.7 565.8,90.9 574.8,91.1 583.9,91.2 592.9,91.4 601.9,91.5 611.0,91.6 620.0,91.7" class="c-raw"/><polyline points="78.0,38.9 87.0,42.6 96.1,46.4 105.1,50.1 114.1,53.8 123.2,57.5 132.2,61.2 141.2,64.9 150.3,68.5 159.3,72.2 168.3,75.8 177.4,79.4 186.4,83.0 195.4,86.6 204.5,90.2 213.5,93.7 222.5,97.2 231.6,100.7 240.6,104.2 249.6,107.6 258.7,111.0 267.7,114.4 276.7,117.7 285.8,121.0 294.8,124.3 303.8,127.5 312.9,130.7 321.9,133.8 330.9,136.9 340.0,140.0 349.0,143.0 358.0,145.9 367.1,148.8 376.1,151.6 385.1,154.4 394.2,157.1 403.2,159.8 412.2,162.3 421.3,164.8 430.3,167.3 439.3,169.7 448.4,172.0 457.4,174.2 466.4,176.4 475.5,178.5 484.5,180.5 493.5,182.4 502.6,184.3 511.6,186.1 520.6,187.8 529.7,189.5 538.7,191.0 547.7,192.5 556.8,194.0 565.8,195.3 574.8,196.6 583.9,197.9 592.9,199.0 601.9,200.1 611.0,201.2 620.0,202.2" class="c-smooth"/><line x1="78" y1="270" x2="620" y2="270" class="axis"/><line x1="78" y1="20" x2="78" y2="270" class="axis"/><line x1="78.0" y1="270" x2="78.0" y2="275" class="axis"/><text x="78.0" y="290" text-anchor="middle" class="tick">1</text><line x1="207.3" y1="270" x2="207.3" y2="275" class="axis"/><text x="207.3" y="290" text-anchor="middle" class="tick">3</text><line x1="349.0" y1="270" x2="349.0" y2="275" class="axis"/><text x="349.0" y="290" text-anchor="middle" class="tick">10</text><line x1="478.3" y1="270" x2="478.3" y2="275" class="axis"/><text x="478.3" y="290" text-anchor="middle" class="tick">30</text><line x1="557.9" y1="270" x2="557.9" y2="275" class="axis"/><text x="557.9" y="290" text-anchor="middle" class="tick">59</text><line x1="620.0" y1="270" x2="620.0" y2="275" class="axis"/><text x="620.0" y="290" text-anchor="middle" class="tick">100</text><line x1="73" y1="270.0" x2="78" y2="270.0" class="axis"/><text x="69" y="274.0" text-anchor="end" class="tick">1e-4</text><line x1="73" y1="200.3" x2="78" y2="200.3" class="axis"/><text x="69" y="204.3" text-anchor="end" class="tick">2e-4</text><line x1="73" y1="108.1" x2="78" y2="108.1" class="axis"/><text x="69" y="112.1" text-anchor="end" class="tick">5e-4</text><line x1="73" y1="38.3" x2="78" y2="38.3" class="axis"/><text x="69" y="42.3" text-anchor="end" class="tick">1e-3</text><line x1="320" y1="34" x2="338" y2="34" class="c-random"/><text x="344" y="38" class="lg">Random noise only (σ/√N)</text><line x1="320" y1="52" x2="338" y2="52" class="c-raw"/><text x="344" y="56" class="lg">Original flat (fixed pattern 5.8e-4)</text><line x1="320" y1="70" x2="338" y2="70" class="c-smooth"/><text x="344" y="74" class="lg">Smoothed flat (1.7e-4)</text><text x="349" y="322" text-anchor="middle" class="lab">Number of frames N</text><text transform="translate(16 145) rotate(-90)" text-anchor="middle" class="lab">Background noise (relative)</text></svg>
+    <figcaption>Canon EOS 6D example (simple model, field not moving). Per-frame noise is 9.8e-4; the flat's fixed pattern is 5.8e-4. From about the third frame on, the fixed pattern dominates and more frames no longer help. With the smoothed flat (1.7e-4), the fixed pattern stays comparable to the random noise (1.3e-4) even at 59 frames, and the total noise is about a third of that with the original flat.</figcaption>
+  </figure>
+  <p>In that data set the flat signal after dark subtraction (about 0.003) was dimmer than the light background (about 0.012), and the master flat had 6–9% pixel noise. 0.012 × 6% ≈ 7e-4, close to the 5.8e-4 fixed pattern measured in the lights.</p>
+
+  <h3>6.2 How it is measured</h3>
+  <ol class="steps">
+    <li>The master flat is split by colour (R, G, G, B for a Bayer mosaic; each channel for mono or RGB).</li>
+    <li>For each pixel, the relative difference from its 5×5 local mean, <code>(pixel − local mean) / local mean</code>. Dividing by the local mean leaves out slow changes such as vignetting and dust shadows.</li>
+    <li>The robust sigma of these differences (every third row and column), divided by <code>√(1 − 1/25)</code>: the pixel itself makes up 1/25 of the local mean, which makes the difference slightly too small.</li>
+    <li>The largest value over the colours is the flat's pixel noise (the colour with the least light, usually B, is the noisiest).</li>
+  </ol>
+
+  <h3>6.3 Choosing the smoothing radius</h3>
+  <p>Smoothing applies a box mean of radius r three times within each colour (three passes approximate a Gaussian blur). White noise is reduced by the square root of the sum of the squared weights. In 2-D this is the product of the two directions, so the sum of the squared 1-D weights is the reduction factor itself.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Radius r (same-colour pixels)</th><th>Noise factor</th><th>Blur width (FWHM, sensor pixels)</th></tr>
+    <tr><td class="num">1</td><td class="num">0.193</td><td class="num">about 7</td></tr>
+    <tr><td class="num">2</td><td class="num">0.112</td><td class="num">about 12</td></tr>
+    <tr><td class="num">4</td><td class="num">0.062</td><td class="num">about 21</td></tr>
+    <tr><td class="num">6</td><td class="num">0.042</td><td class="num">about 31</td></tr>
+    <tr><td class="num">8</td><td class="num">0.032</td><td class="num">about 40</td></tr>
+  </table></div>
+  <p>Automatic mode picks the smallest radius with <code>pixel noise × factor ≤ target (0.3% by default)</code>. If the pixel noise is already below the target, nothing is done. Examples: the Canon flat (8.9% at most) gets r = 8; the synthetic flat of the WBPP end-to-end test (1.85%) gets r = 2 and ends at 0.21%.</p>
+  <p>Before smoothing, pixels more than 4σ from the median of their 8 same-colour neighbours (hot or dead pixels, values at or below 0, NaN) are replaced by that median; blurring them as they are would spread them. At the image edges the neighbours are extrapolated linearly, so the vignetting slope does not bias the test there.</p>
+  <div class="callout"><p><b>What is lost:</b> pixel-to-pixel sensitivity differences (PRNU) and dust shadows smaller than the blur width are no longer corrected. A noisy flat cannot measure them anyway. With a good flat (well exposed, 20+ frames), automatic mode does nothing.</p></div>
+</section>
+
+<section id="compare">
+  <h2>7. Comparing results</h2>
+  <p>These are the methods used to check the effect of ApranatNR and FlatSmooth. Each compares a master made with a step against one made without it. They are test computations, not part of the tools.</p>
+
+  <h3>7.1 What to align first</h3>
+  <ul>
+    <li><b>Reference frame and position:</b> WBPP may pick a different reference frame on each run. A shifted master is aligned by phase correlation. Interpolation changes the noise, so a comparison with different reference frames is only indicative.</li>
+    <li><b>Brightness scale:</b> WBPP may rescale its output (one real case: ×1.049 + 0.010). Match the scales with a straight-line fit before comparing.</li>
+    <li><b>Drop the borders:</b> borders covered by fewer frames because of drift are noisier and differ easily.</li>
+    <li><b>Mask the stars:</b> for background measurements, pixels whose high-pass (image − 13×13 mean) exceeds 3σ are stars; the mask is grown a little.</li>
+  </ul>
+
+  <h3>7.2 Background noise</h3>
+  <ul>
+    <li><b>Fine noise:</b> the robust sigma of image − 3×3 mean, without stars: pixel-scale noise.</li>
+    <li><b>Mid noise:</b> the robust sigma of 3×3 mean − 17×17 mean: the scale of walking-noise streaks.</li>
+    <li>Both are divided by the background level and compared as relative values. A figure such as "background noise −1.7%" is this ratio.</li>
+  </ul>
+
+  <h3>7.3 Direction of walking noise</h3>
+  <p>For the mid band, the correlation between pixels 4 pixels apart is computed in 24 directions. Ordinary noise is the same in every direction; walking noise has a much higher correlation along the drift (along) than across it (across).</p>
+
+  <h3>7.4 Size and origin of a fixed pattern</h3>
+  <ul>
+    <li><b>Odd versus even frames:</b> the high-pass of each calibrated light (difference from the same-colour 5×5 mean, stars masked) is median-stacked separately for odd and even frames. Random noise is unrelated between the two; a pattern fixed to the sensor appears in both. The square root of their covariance is the size of the fixed pattern, and their correlation its share (Canon example: correlation 0.75).</li>
+    <li><b>Finding the cause:</b> correlate that pattern with the high-pass of the master flat (relative). In the Canon example it was −0.82: pixels where the flat is brighter are darker in the lights, the trace of the flat division. The same test against the master dark rules candidates in or out one by one.</li>
+    <li><b>Fixed to the sensor or to the sky:</b> build the same pattern from the first and the last frames and correlate them at a range of shifts. If the correlation peaks at zero shift, the pattern is on the sensor (sky objects would peak at the shift of the drift).</li>
+  </ul>
+
+  <h3>7.5 Defect traces</h3>
+  <p>At the positions in the defect map, count the share of pixels whose residual in the master exceeds 5σ (or 3σ). Count the same share at as many defect-free positions (the control). When the defect positions come down to the control level, no trace remains. Example, unguided and undithered data: 1.75% without correction, 1.50% with ApranatNR 1.5.2, 1.63% for the control.</p>
+
+  <h3>7.6 Star brightness</h3>
+  <p>Star brightness can be measured like this: for each star, the sum in an aperture of radius 4 (9×9 pixels) minus the median of a 25×25 area times the pixel count (the background), then the ratio with step ÷ without step. Look at the median ratio and its 5–95% range. For faint stars, stars whose core sits on a defect were compared with stars whose core does not (the control) to check that star protection works.</p>
+</section>
+
+<section id="pitfalls">
+  <h2>8. Reading the numbers</h2>
+  <ul>
+    <li><b>1.4826 × MAD assumes a normal distribution:</b> when the distribution is far from normal (quantized values, for example), the sigma itself differs from the standard deviation. Decisions compare values measured with the same yardstick, so this rarely matters.</li>
+    <li><b>Compare small differences with a control:</b> a 1–2% difference in background noise can also come from a different reference frame or interpolation. Judge it from a comparison where only the step differs, or next to a control such as defect-free positions.</li>
+    <li><b>Do not mix colours:</b> a sigma computed over mixed colours of an undebayered image includes the colour differences and comes out too large. After debayering, measure on the luminance (mean of the channels).</li>
+    <li><b>Temperature drift in darks:</b> when the temperature changes during a dark set, the dark current of hot pixels changes, and their fluctuation exceeds the model. A few dozen hot pixels may then be flagged as drunk pixels.</li>
+    <li><b>Leftover files:</b> WBPP remembers the previous file lists. Before comparing, check <code>IC.masterDarkPath</code> and the <code>Master flat:</code> lines in the log to confirm the intended dark and flat were used.</li>
+  </ul>
+</section>
+
+<footer>
+  ApranatNR methods devised by apranat (<a href="https://apranat.exblog.jp/">apranat.exblog.jp</a>). FlatSmooth is a tool of my own. For how to use each tool, see the <a href="../ApranatNR/ApranatNR-Guide-en.html">ApranatNR guide</a>, <a href="../DarkPixelPlot/README.md">DarkPixelPlot</a> and <a href="../FlatSmooth/README.md">FlatSmooth</a>.
+</footer>
+</main>
+</div>
+</body>
+</html>

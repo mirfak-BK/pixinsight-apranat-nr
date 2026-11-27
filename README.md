@@ -27,6 +27,7 @@ All scripts have an English (default) and a Japanese user interface.
 ## Documentation
 
 - ApranatNR guide: [English](ApranatNR/ApranatNR-Guide-en.html), [Japanese](ApranatNR/ApranatNR-Guide.html) (download and open in a browser)
+- Noise measurement guide (how the three tools measure noise, and how results were compared): [English](docs/NoiseMeasurement-Guide-en.html), [Japanese](docs/NoiseMeasurement-Guide.html)
 - [ApranatNR README](ApranatNR/README.md), [DarkPixelPlot README](DarkPixelPlot/README.md), [FlatSmooth README](FlatSmooth/README.md)
 
 ## Tests
